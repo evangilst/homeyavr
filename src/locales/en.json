@@ -1,0 +1,18 @@
+{
+    "pair": {
+        "config": {
+            "title":      "Marantz AVR configuration setup.",
+            "ipaddress":  "IP address :",
+            "type":       "AVR type :",
+            "name":       "Name of the avr",
+            "clstart":    "Cold start : ",
+            "saveit":     "Save configuration",
+            "message":    "Test version",
+            "emptyType":  "No AVR tyoe selected !.",
+            "emptyName":  "No name given !.",
+            "emptyIP":    "No IP address given !.",
+            "invalidIP":  "Invalid IPV4 IP address !.",
+            "required":   "Invalid parameters detected !."
+        }
+    }
+}

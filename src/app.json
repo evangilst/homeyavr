@@ -1,0 +1,111 @@
+{
+    "id": "nl.evgilst.homeyavr",
+    "name": {
+        "en": "homeyavr",
+        "nl": "homeyavr"
+    },
+    "version": "0.0.1",
+    "compatibility": "0.x || 1.x",
+    "author": {
+        "name": "Evert van Gilst",
+        "email": "apps@evgilst.nl"
+    },
+    "images": {
+        "large": "./assets/images/large.jpg",
+        "small": "./assets/images/small.jpg"
+    },
+    "cataegory": "appliances",
+    "description": {
+        "en": "AVR controll appliance for Homey",
+        "nl": "Homeys AVR besturings applicatie."
+    },
+    "dependencies": {
+        "net": "*"
+    },
+    "drivers": [
+        {
+            "id": "avr",
+            "name": {
+                "en": "AVR amplifier.",
+                "nl": "Avr versterker"
+            },
+            "images": {
+                "large": "drivers/avr/assets/images/large.jpg",
+                "small": "drivers/avr/assets/images/small.jpg"
+            },
+            "class": "other",
+            "capabilities": [""],
+            "pair": [
+                {
+                    "id": "configure_avr"
+                },
+                {
+                    "id": "list_devices",
+                    "template": "list_devices",
+                    "navigation": {
+                        "next": "add_avr"
+                    }
+                },
+                {
+                    "id": "add_avr",
+                    "template": "add_devices"
+                }
+            ]
+        }
+    ],
+    "flow": {
+        "actions": [
+            {
+                "id": "poweron",
+                "title": {
+                    "en": "Power up.",
+                    "nl": "Zet aan"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select avr",
+                            "nl": "Selecteer avr"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "poweroff",
+                "title": {
+                    "en": "Power off.",
+                    "nl": "Zet uit"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select avr",
+                            "nl": "Selecteer avr"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "checkpoweravr",
+                "title": {
+                    "en": "Get power status from avr.",
+                    "nl": "Haal power status op van avr"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select avr",
+                            "nl": "Selecteer avr"
+                        }
+                    }
+                ]
+            }
+        ]
+    }
+}
