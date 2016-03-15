@@ -105,6 +105,57 @@
                         }
                     }
                 ]
+            },
+            {
+                "id": "mute",
+                "title": {
+                    "en": "Turn mute on",
+                    "nl": "Zet mute aan"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "unmute",
+                "title": {
+                    "en": "Turn mute off",
+                    "nl": "Zet mute uit"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "checkmuteavr",
+                "title": {
+                    "en": "Get mute status from AVR",
+                    "nl": "Haal de mute status van de AVR"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
             }
         ]
     }

@@ -207,10 +207,6 @@ Homey.manager("flow")
 
     .on("action.poweron" , (callback, args) => {
 
-        console.log(`Action_powerOn for ${args.device.avrip}/${args.device.avrport}/${args.device.avrname}/${args.device.avrindex}.`);
-
-        console.log("c:" ,  avrDevArray[ args.device.avrindex ]);
-
         if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
                      avrDevArray[ args.device.avrindex ]  !== null  ) {
 
@@ -218,14 +214,12 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Unknown device.");
+            console.log("Error: Unknown device.");
             callback(new Error("unknown device."), false );
         }
     })
 
     .on("action.poweroff", (callback,args) => {
-
-        console.log(`Action_powerOff for ${args.device.avrip}/${args.device.avrport}/${args.device.avrname}/${args.device.avrindex}.`);
 
         if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
                      avrDevArray[ args.device.avrindex ]  !== null  ) {
@@ -234,14 +228,12 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Unknown device.");
+            console.log("Error: Unknown device.");
             callback(new Error("unknown device."), false );
         }
     })
 
     .on("action.checkpoweravr", (callback,args) => {
-
-        console.log(`Action_checkpoweravr for ${args.device.avrip}/${args.device.avrport}/${args.device.avrname}/${args.device.avrindex}.`);
 
         if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
                      avrDevArray[ args.device.avrindex ]  !== null  ) {
@@ -250,7 +242,49 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Unknown device.");
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.mute", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].muteOn();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.unmute", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].muteOff();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.checkmuteavr", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].getMuteStatusFromAvr();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
             callback(new Error("unknown device."), false );
         }
     });
