@@ -57,7 +57,7 @@ let deleted = (device, callback) => {
 
     } else {
 
-        avrDevArray[device.avrindex] == null ;
+        avrDevArray[device.avrindex] = null ;
 
         callback( null, true);
     }
@@ -287,10 +287,301 @@ Homey.manager("flow")
             console.log("Error: Unknown device.");
             callback(new Error("unknown device."), false );
         }
+    })
+
+    .on("action.selectphono", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourcePhono();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectcd", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceCd();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectdvd", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceDvd();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectbluray", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceBluray();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selecttv", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceTv();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectsatcbl", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceSatCbl();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectsat", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceSat();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectmplay", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceMplay();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectgame", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceGame();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selecttuner", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceTuner();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectlastfm", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceLastfm();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectflickr", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceFlickr();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectiradio", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceIRadio();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectserver", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceServer();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectfavorites", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceFavorites();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectaux1", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceAux1();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectaux2", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceAux2();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectnet", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceNet();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectmxport", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceMXport();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.selectusbipod", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].selectInputSourceUsbIpod();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.getselectionfroavr", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].getInputSourceFromAvr();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
     });
-
-
-
 
 module.exports.deleted = deleted;
 module.exports.init    = init;

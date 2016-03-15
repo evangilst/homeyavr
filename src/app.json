@@ -156,6 +156,363 @@
                         }
                     }
                 ]
+            },
+            {
+                "id": "selectphono",
+                "title": {
+                    "en": "Select PHONO as inputsource",
+                    "nl": "Selecteer PHONO als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectcd",
+                "title": {
+                    "en": "Select CD as inputsource",
+                    "nl": "Selecteer CD als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectdvd",
+                "title": {
+                    "en": "Select DVD as inputsource",
+                    "nl": "Selecteer DVD als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectbluray",
+                "title": {
+                    "en": "Select Bluray as inputsource",
+                    "nl": "Selecteer Bluray als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selecttv",
+                "title": {
+                    "en": "Select TV as inputsource",
+                    "nl": "Selecteer TV als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectsatcbl",
+                "title": {
+                    "en": "Select SAT/CBL as inputsource",
+                    "nl": "Selecteer SAT/CBL als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectsat",
+                "title": {
+                    "en": "Select SAT as inputsource",
+                    "nl": "Selecteer SAT als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectmplay",
+                "title": {
+                    "en": "Select MPLAY as inputsource",
+                    "nl": "Selecteer MPLAY als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectgame",
+                "title": {
+                    "en": "Select GAME as inputsource",
+                    "nl": "Selecteer GAME als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selecttuner",
+                "title": {
+                    "en": "Select TUNER as inputsource",
+                    "nl": "Selecteer TUNER als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectlastfm",
+                "title": {
+                    "en": "Select LASTFM as inputsource",
+                    "nl": "Selecteer LASTFM als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectflickr",
+                "title": {
+                    "en": "Select FLICKR as inputsource",
+                    "nl": "Selecteer FLICKR als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectiradio",
+                "title": {
+                    "en": "Select Internet Radio as inputsource",
+                    "nl": "Selecteer Internet Radio als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectserver",
+                "title": {
+                    "en": "Select Server as inputsource",
+                    "nl": "Selecteer Server als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectfavorites",
+                "title": {
+                    "en": "Select Favorites as inputsource",
+                    "nl": "Selecteer Favorites als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectaux1",
+                "title": {
+                    "en": "Select AUX1 as inputsource",
+                    "nl": "Selecteer AUX1 als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectaux2",
+                "title": {
+                    "en": "Select AUX2 as inputsource",
+                    "nl": "Selecteer AUX2 als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectnet",
+                "title": {
+                    "en": "Select NET as inputsource",
+                    "nl": "Selecteer NET als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectmxport",
+                "title": {
+                    "en": "Select M-XPort as inputsource",
+                    "nl": "Selecteer M-XPort als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "selectusbipod",
+                "title": {
+                    "en": "Select USB/IPOD as inputsource",
+                    "nl": "Selecteer USB/IPOD als bron."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "getselectionfroavr",
+                "title": {
+                    "en": "Get source input selection from AVR.",
+                    "nl": "Haal de input bron van de AVR."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
             }
         ]
     }

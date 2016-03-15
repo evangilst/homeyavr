@@ -148,6 +148,31 @@ class Avr {
         this._d(`MarantzAvr: mute set to ${this.mute}.`);
     }
 
+
+    /**
+     * Callback function to process the received inputsource information from the AVR.
+     *
+     * @method     _cbInputSource
+     * @param      {string}  data         - The data received from the AVR.
+     * @param      {Array}   optionsArray - The array with possible inputsource status.
+     */
+    _cbInputSource(data, optionsArray ) {
+
+        let xData = String(data);
+
+        // Remove "\r" from data for better logging.
+        xData = xData.replace("\r", "");
+
+        for( let I = 0 ; I < optionsArray.length; I++ ) {
+
+            if ( xData.indexOf( optionsArray[I].type) !== -1 ) {
+                this.inputsource = optionsArray[I].text;
+            }
+        }
+        this._d(`MarantzAvr: inputsource set to ${this.inputsource}.`);
+    }
+
+
     /**
      * Write a command to the AVR while no response is expected.
      *
