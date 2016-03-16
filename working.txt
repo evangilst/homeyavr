@@ -1,0 +1,30 @@
+How to generate the application for the current v0.12.x version of node:
+
+After cloning the repository:
+
+cd homeavr
+node install
+
+To use the simulator add an AVR device in Homey with <local_server_ip>:2222
+
+as example:
+If you testing server (not homey or the AVR device) has 192.168.1.100 use 192.168.1.100:2222
+
+192.168.1.90:2222 will use IP address 192.168.1.90 port 2222
+192.168.1.90      will use IP address 192.168.1.90 port 23 (standard telnet port)
+
+V0.12.X:
+
+grunt buildes5
+cd dist/es5/nl.evgilst.homeavr to test application on Homey
+cd dist/es5/avrsim to use the avrsim (it runs on port 2222)
+
+
+V4.3.X:
+
+grunt buildes6
+cd dist/es6/nl.evgilst.homeavr
+cd dist/es5/avrsim to use the avrsim (it runs on port 2222)
+
+Note:
+Every new build will remove all directories under the dist directory!.
