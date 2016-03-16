@@ -7,13 +7,21 @@ module.exports = function( grunt ) {
     grunt.initConfig({
 
         m: {
-            srcDir:     "./src",
-            destDocDir: "./dist/",
-            es5destDir: "./dist/es5/nl.evgilst.homeyavr",
-            es5rel:     "es5",
+            srcDir:        "./src",
+            srcSimDir:     "./avrsim",
 
-            es6destDir: "/dist/es6/nl.evgilst/homeyavr",
-            es6rel:     "es6"
+            destDir:       "./dist/",
+            destDocDir:    "./dist/docs",
+
+            es5destDir:    "./dist/es5",
+            es5SimDir:     "./dist/es5/avrsim",
+            es5destAppDir: "./dist/es5/nl.evgilst.homeyavr",
+            es5rel:        "es5",
+
+            es6destDir:    "./dist/es6",
+            es6SimDir:     "./dist/es6/avrsim",
+            es6destAppDir: "/dist/es6/nl.evgilst.homeyavr",
+            es6rel:        "es6"
         },
 
         clean: {
@@ -28,32 +36,32 @@ module.exports = function( grunt ) {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "assets/**/*",
-                        dest:   "<%= m.es5destDir %>"
+                        dest:   "<%= m.es5destAppDir %>"
                     },
                     {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "locales/**/*",
-                        dest:   "<%= m.es5destDir %>"
+                        dest:   "<%= m.es5destAppDir %>"
                     },
                     {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
-                        src:    "drivers/avr/accests/**/*",
-                        dest:   "<%= m.es5destDir %>"
+                        src:    "drivers/avr/assets/**/*",
+                        dest:   "<%= m.es5destAppDir %>"
                     },
                     {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "drivers/avr/pair/**/*",
-                        dest:   "<%= m.es5destDir %>"
+                        dest:   "<%= m.es5destAppDir %>"
                     },
 
                     {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "app.json",
-                        dest:   "<%= m.es5destDir %>"
+                        dest:   "<%= m.es5destAppDir %>"
                     }
                 ]
             },
@@ -63,43 +71,49 @@ module.exports = function( grunt ) {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "assets/**/*",
-                        dest:   "<%= m.es6destDir %>"
+                        dest:   "<%= m.es6destAppDir %>"
                     },
                     {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "locales/**/*",
-                        dest:   "<%= m.es6destDir %>"
+                        dest:   "<%= m.es6destAppDir %>"
                     },
                     {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "drivers/avr/accests/**/*",
-                        dest:   "<%= m.es6destDir %>"
+                        dest:   "<%= m.es6destAppDir %>"
                     },
                     {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "drivers/avr/pair/**/*",
-                        dest:   "<%= m.es6destDir %>"
+                        dest:   "<%= m.es6destAppDir %>"
                     },
                     {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "drivers/avr/lib/**/*",
-                        dest:   "<%= m.es6destDir %>"
+                        dest:   "<%= m.es6destAppDir %>"
                     },
                     {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "app.json",
-                        dest:   "<%= m.es6destDir %>"
+                        dest:   "<%= m.es6destAppDir %>"
                     },
                     {
                         expand: true,
                         cwd:    "<%= m.srcDir %>",
                         src:    "app.js",
-                        dest:   "<%= m.es6destDir %>"
+                        dest:   "<%= m.es6destAppDir %>"
+                    },
+                    {
+                        expand: true,
+                        cwd:    "<%= m.srcSimDir %>",
+                        src:    "avrsim.js",
+                        dest:   "<%= m.es6SimDir %>"
                     }
                 ]
             }
@@ -111,17 +125,20 @@ module.exports = function( grunt ) {
             },
             dist: {
                 files: {
-                    "<%= m.es5destDir %>/app.js":   "<%= m.srcDir %>/app.js",
+                    "<%= m.es5destAppDir %>/app.js":   "<%= m.srcDir %>/app.js",
 
-                    "<%= m.es5destDir %>/drivers/avr/driver.js":
+                    "<%= m.es5destAppDir %>/drivers/avr/driver.js":
                             "<%= m.srcDir %>/drivers/avr/driver.js",
 
-                    "<%= m.es5destDir %>/drivers/avr/lib/avr.js":
+                    "<%= m.es5destAppDir %>/drivers/avr/lib/avr.js":
                             "<%= m.srcDir %>/drivers/avr/lib/avr.js",
-                    "<%= m.es5destDir %>/drivers/avr/lib/sr7007.js":
+                    "<%= m.es5destAppDir %>/drivers/avr/lib/sr7007.js":
                             "<%= m.srcDir %>/drivers/avr/lib/sr7007.js",
-                    "<%= m.es5destDir %>/drivers/avr/lib/sr7006.js":
-                            "<%= m.srcDir %>/drivers/avr/lib/sr7006.js"
+                    "<%= m.es5destAppDir %>/drivers/avr/lib/sr7006.js":
+                            "<%= m.srcDir %>/drivers/avr/lib/sr7006.js",
+
+                    "<%= m.es5SimDir %>/avrsim.js":
+                            "<%= m.srcSimDir %>/avrsim.js"
                 }
             }
         },
