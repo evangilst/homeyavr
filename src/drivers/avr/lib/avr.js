@@ -173,6 +173,22 @@ class Avr {
     }
 
 
+    _cbVolume( data, optionsArray ) {
+
+        let xData = String(data);
+
+        xData = xData.replace("\r", "");
+
+        let rets = /.*MV(\d+).*/i.exec(xData);
+
+        console.log(`_cbVolume: data : '${xData}'.`);
+        console.log(`_cbVolume: rets : '${rets}'.`);
+
+        this.volume = rets[1];
+
+        this._d(`MarantzAvr: volume set to ${this.volume}.`);
+    }
+
     /**
      * Write a command to the AVR while no response is expected.
      *

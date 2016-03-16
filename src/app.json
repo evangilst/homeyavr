@@ -14,7 +14,7 @@
         "large": "./assets/images/large.jpg",
         "small": "./assets/images/small.jpg"
     },
-    "cataegory": "appliances",
+    "category": "appliances",
     "description": {
         "en": "AVR controll appliance for Homey",
         "nl": "Homeys AVR besturings applicatie."
@@ -34,7 +34,7 @@
                 "small": "drivers/avr/assets/images/small.jpg"
             },
             "class": "other",
-            "capabilities": [""],
+            "capabilities": ["onoff"],
             "pair": [
                 {
                     "id": "configure_avr"
@@ -510,6 +510,84 @@
                         "placeholder": {
                             "en": "Select amplifier",
                             "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "increasevolume",
+                "title": {
+                    "en": "Increase volume.",
+                    "nl": "Zet geluid harder."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "decreasevolume",
+                "title": {
+                    "en": "Decrease volume.",
+                    "nl": "Zet geluid achter."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "getvolume",
+                "title": {
+                    "en": "Get volume from AVR.",
+                    "nl": "Haal volume op van de AVR.."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "setvolume",
+                "title": {
+                    "en": "Set volume.",
+                    "nl": "Zet volume op.."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    },
+                    {
+                        "name": "volume",
+                        "type": "number",
+                        "min": 0,
+                        "max": 80,
+                        "placeholder": {
+                            "en": "Target volume",
+                            "nl": "Gewenst volume"
                         }
                     }
                 ]

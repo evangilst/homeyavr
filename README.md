@@ -1,4 +1,4 @@
-## Marantz / Denon support to you Homey.
+## Marantz / Denon support to your Homey.
 
 Currently working:
 - power commands (on,off,standby)

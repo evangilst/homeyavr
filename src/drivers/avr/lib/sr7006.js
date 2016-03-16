@@ -578,6 +578,84 @@ class SR7006 extends Avr {
     getInputSource() {
         return this.inputsource;
     }
+
+    /*************************************************************************
+     * Volume methodes
+     *************************************************************************/
+
+    /**
+     * Increase the volume
+     *
+     * @method     increaseVolume
+     */
+    increaseVolume() {
+
+        let xThis = this ;
+
+        this._writeCommandNoResponse("MVUP");
+
+        setTimeout( () => {
+            xThis.getVolumeFromAvr() ;
+        }, 1000);
+    }
+
+    /**
+     * Descreas the volume
+     *
+     * @method     decreaseVolume
+     */
+    decreaseVolume() {
+
+        let xThis = this ;
+
+        this._writeCommandNoResponse("MVDOWN");
+
+        setTimeout( () => {
+            xThis.getVolumeFromAvr() ;
+        }, 1000);
+    }
+
+    /**
+     * Set the volime of the AVr (min:0, MAx: 80 )
+     *
+     * @method     setVolume
+     * @param      {number}  level   The desired volume setting
+     */
+    setVolume( level ) {
+
+        let xThis = this;
+
+        if ( level >= 0 && level <= 80 ) {
+
+            this._writeCommandNoResponse(`MV${level}`);
+
+            setTimeout( () => {
+                xThis.getVolumeFromAvr() ;
+            }, 1000);
+        }
+    }
+
+    /**
+     * Get the volume setting from the AVR.
+     *
+     * @method     getVolumeFromAvr
+     */
+    getVolumeFromAvr() {
+
+        let xThis = this ;
+
+        this._writeCommandWithReponse("MV?", [] , xThis._cbVolume.bind(xThis));
+    }
+
+    /**
+     * Get the store volume
+     *
+     * @method     getVolume
+     * @return     {number}  - The stored last voluem settins.
+     */
+    getVolume() {
+        return this.volume;
+    }
 }
 
 module.exports = SR7006;

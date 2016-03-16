@@ -104,6 +104,24 @@ let init = (devices, callback ) => {
     callback( null, "");
 };
 
+let capabilities = {
+    onoff: {
+        get: (device, callback) => {
+
+            let status = avrDevArray[ device.avrindex ].getPowerStatus();
+
+            callback(null, status);
+        },
+        set: (device, onoff, callback) => {
+
+            let status = avrDevArray[ device.avrindex ].getPowerStatus();
+
+            console.log(`onoff : '${onoff}'.`);
+
+        }
+    }
+};
+
 /**
  * Communication channel between Homey and the AVR to create new AVR devices.
  *
@@ -581,8 +599,66 @@ Homey.manager("flow")
             console.log("Error: Unknown device.");
             callback(new Error("unknown device."), false );
         }
-    });
+    })
 
-module.exports.deleted = deleted;
-module.exports.init    = init;
-module.exports.pair    = pair;
+    .on("action.increasevolume", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].increaseVolume();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.decreasevolume", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].decreaseVolume();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.getvolume", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].getVolumeFromAvr();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.setvolume", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].setVolume(args.volume);
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+    ;
+
+module.exports.deleted      = deleted;
+module.exports.init         = init;
+module.exports.pair         = pair;
+module.exports.capabilities = capabilities;
