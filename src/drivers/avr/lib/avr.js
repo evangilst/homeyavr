@@ -529,6 +529,17 @@ class Avr {
         for ( let I = 0 ; I < sArray.length; I++ ) {
 
             switch( this.type ) {
+                case "av8802":
+                    if ( sArray[I].av8802 ) {
+                        let item = {};
+
+                        item.name  = sArray[I].text;
+                        item.id    = sArray[I].id;
+                        item.index = index;
+
+                        items.push(item);
+                    }
+                    break;
                 case "av8801":
                     if ( sArray[I].av8801 ) {
                         let item = {};
