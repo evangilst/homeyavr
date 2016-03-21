@@ -1,36 +1,9 @@
 "use strict";
 
-let SR7007 = require("./lib/sr7007");
-let SR7006 = require("./lib/sr7006");
+let Avr = require("./lib/avr");
 
 let avrDevArray = [];
 let newDevInfo  = {};
-
-/**
- * Select the correct AVR
- * ((will be extended later))
- *
- * @method     selectCorrectAvr
- * @param      number    sPort   port number to use
- * @param      string    sHost   IP address of the AVR
- * @return     AVR               retunr a new AVR.
- */
-let selectCorrectAvr = (sPort, sHost, sType ) => {
-
-    let newAvr = null ;
-
-    if ( sType === "SR7007") {
-        console.log("Creating a SR7007");
-        newAvr = new SR7007( sPort, sHost );
-    } else if ( sType === "SR7006") {
-        console.log("Creating a SR7006");
-        newAvr = new SR7006( sPort, sHost );
-    } else {
-        console.log(`'${sType}' is a unknown AVR type !.`);
-    }
-
-    return newAvr;
-};
 
 /**
  * Deleting a AVR device
@@ -86,9 +59,10 @@ let init = (devices, callback ) => {
             console.log(`MarantzAvr: init: '${device.avrtype}'.`);
             console.log(`MarantzAvr: init: '${device.avrindex}'.`);
 
-            avrDevArray[ device.avrindex ] = selectCorrectAvr( device.avrport,
-                                                               device.avrip,
-                                                               device.avrtype  );
+            avrDevArray[ device.avrindex ] = new Avr( device.avrport,
+                                                      device.avrip,
+                                                      device.avrname,
+                                                      device.avrtype  );
 
             console.log(`avrDevArray slot ${device.avrindex}: ${avrDevArray[device.avrindex]}`);
         });
@@ -102,24 +76,6 @@ let init = (devices, callback ) => {
     }
 
     callback( null, "");
-};
-
-let capabilities = {
-    onoff: {
-        get: (device, callback) => {
-
-            let status = avrDevArray[ device.avrindex ].getPowerStatus();
-
-            callback(null, status);
-        },
-        set: (device, onoff, callback) => {
-
-            let status = avrDevArray[ device.avrindex ].getPowerStatus();
-
-            console.log(`onoff : '${onoff}'.`);
-
-        }
-    }
 };
 
 /**
@@ -159,9 +115,10 @@ let pair = (socket) => {
 
             console.log(`MarantzAvr_get_devices: avrIndex is using ${newDevInfo.avrindex}.`);
 
-            avrDevArray[ newDevInfo.avrindex ] = selectCorrectAvr( newDevInfo.avrport,
-                                                                   newDevInfo.avrip,
-                                                                   newDevInfo.avrtype );
+            avrDevArray[ newDevInfo.avrindex ] = new Avr( newDevInfo.avrport,
+                                                          newDevInfo.avrip,
+                                                          newDevInfo.avrname,
+                                                          newDevInfo.avrtype  );
 
             console.log(`avrDevArray slot ${newDevInfo.avrindex} filled.`);
 
@@ -221,6 +178,10 @@ let pair = (socket) => {
         });
 };
 
+/**************************************************
+ * power methodes, valid for all Marantz devices.
+ **************************************************/
+
 Homey.manager("flow")
 
     .on("action.poweron" , (callback, args) => {
@@ -263,7 +224,12 @@ Homey.manager("flow")
             console.log("Error: Unknown device.");
             callback(new Error("unknown device."), false );
         }
-    })
+    });
+
+/**************************************************
+ * mute methodes, valid for all Marantz devices.
+ **************************************************/
+Homey.manager("flow")
 
     .on("action.mute", (callback,args) => {
 
@@ -305,360 +271,35 @@ Homey.manager("flow")
             console.log("Error: Unknown device.");
             callback(new Error("unknown device."), false );
         }
+    });
+
+/**************************************************
+ * Input source selection based on the available sources per AVR.
+ **************************************************/
+
+Homey.manager("flow")
+
+    .on("action.selectinput.input.autocomplete", (callback, args) => {
+
+        console.log( args.device.avrindex );
+
+        let items = avrDevArray[ args.device.avrindex ].getValidInputSelection(args.device.avrindex);
+
+        console.log( items );
+
+        callback(null, items);
     })
 
-    .on("action.selectphono", (callback,args) => {
+    .on("action.selectinput", (callback, args) => {
 
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+        console.log( args );
 
-            avrDevArray[ args.device.avrindex ].selectInputSourcePhono();
+        avrDevArray[ args.device.avrindex ].selectCorrectInputSource(args.input.id);
 
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
+        callback(null, true);
+    });
 
-    .on("action.selectcd", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceCd();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectdvd", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceDvd();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectbluray", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceBluray();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selecttv", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceTv();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectsatcbl", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceSatCbl();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectsat", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceSat();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectmplay", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceMplay();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectgame", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceGame();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selecttuner", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceTuner();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectlastfm", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceLastfm();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectflickr", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceFlickr();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectiradio", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceIRadio();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectserver", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceServer();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectfavorites", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceFavorites();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectaux1", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceAux1();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectaux2", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceAux2();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectnet", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceNet();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectmxport", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceMXport();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.selectusbipod", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].selectInputSourceUsbIpod();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.getselectionfroavr", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].getInputSourceFromAvr();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.increasevolume", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].increaseVolume();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.decreasevolume", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].decreaseVolume();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.getvolume", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].getVolumeFromAvr();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-
-    .on("action.setvolume", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].setVolume(args.volume);
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
-    })
-    ;
 
 module.exports.deleted      = deleted;
 module.exports.init         = init;
 module.exports.pair         = pair;
-module.exports.capabilities = capabilities;

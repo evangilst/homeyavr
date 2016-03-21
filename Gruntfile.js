@@ -132,10 +132,8 @@ module.exports = function( grunt ) {
 
                     "<%= m.es5destAppDir %>/drivers/avr/lib/avr.js":
                             "<%= m.srcDir %>/drivers/avr/lib/avr.js",
-                    "<%= m.es5destAppDir %>/drivers/avr/lib/sr7007.js":
-                            "<%= m.srcDir %>/drivers/avr/lib/sr7007.js",
-                    "<%= m.es5destAppDir %>/drivers/avr/lib/sr7006.js":
-                            "<%= m.srcDir %>/drivers/avr/lib/sr7006.js",
+                    "<%= m.es5destAppDir %>/drivers/avr/lib/avrtest.js":
+                            "<%= m.srcDir %>/drivers/avr/lib/avrtest.js",
 
                     "<%= m.es5SimDir %>/avrsim.js":
                             "<%= m.srcSimDir %>/avrsim.js"
