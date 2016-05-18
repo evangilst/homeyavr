@@ -203,7 +203,27 @@ Homey.manager("flow")
         if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
                      avrDevArray[ args.device.avrindex ]  !== null  ) {
 
-            avrDevArray[ args.device.avrindex ].powerStandby();
+            avrDevArray[ args.device.avrindex ].powerOff();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    });
+
+/**************************************************
+ * main_zone-power methodes, valid for all Marantz devices.
+ **************************************************/
+
+Homey.manager("flow")
+
+    .on("action.main_zone_poweron" , (callback, args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].mainZonePowerOn();
 
             callback(null, true);
         } else {
@@ -212,12 +232,12 @@ Homey.manager("flow")
         }
     })
 
-    .on("action.checkpoweravr", (callback,args) => {
+    .on("action.main_zone_poweroff", (callback,args) => {
 
         if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
                      avrDevArray[ args.device.avrindex ]  !== null  ) {
 
-            avrDevArray[ args.device.avrindex ].getPowerStatusFromAvr();
+            avrDevArray[ args.device.avrindex ].mainZonePowerOff();
 
             callback(null, true);
         } else {
@@ -257,20 +277,6 @@ Homey.manager("flow")
             console.log("Error: Unknown device.");
             callback(new Error("unknown device."), false );
         }
-    })
-
-    .on("action.checkmuteavr", (callback,args) => {
-
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
-
-            avrDevArray[ args.device.avrindex ].getMuteStatusFromAvr();
-
-            callback(null, true);
-        } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
-        }
     });
 
 /**************************************************
@@ -283,7 +289,7 @@ Homey.manager("flow")
 
         console.log( args.device.avrindex );
 
-        let items = avrDevArray[ args.device.avrindex ].getValidInputSelection(args.device.avrindex);
+        let items = avrDevArray[ args.device.avrindex ].getValidInputSelection();
 
         console.log( items );
 
@@ -294,11 +300,58 @@ Homey.manager("flow")
 
         console.log( args );
 
-        avrDevArray[ args.device.avrindex ].selectCorrectInputSource(args.input.id);
+        avrDevArray[ args.device.avrindex ].selectCorrectInputSource(args.input.command);
 
         callback(null, true);
     });
 
+/**************************************************
+ * Volume methodes, valid for all Marantz devices.
+ **************************************************/
+
+Homey.manager("flow")
+
+    .on("action.volumeup", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].volumeUp();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+
+    .on("action.volumedown", (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].volumeDown();
+
+            callback(null, true);
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    })
+    .on("action.setvolume" , (callback,args) => {
+
+        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
+                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+
+            avrDevArray[ args.device.avrindex ].setVolume( args.volumeNum);
+
+            callback(null, true);
+
+        } else {
+            console.log("Error: Unknown device.");
+            callback(new Error("unknown device."), false );
+        }
+    }) ;
 
 module.exports.deleted      = deleted;
 module.exports.init         = init;

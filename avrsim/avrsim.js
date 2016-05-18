@@ -9,9 +9,11 @@ class AvrSim {
         this.port   = sPort;
         this.socket = null;
 
-        this.powerstatus = "standby";
-        this.mute        = "off";
-        this.inputsel    = "CD";
+        this.powerstatus   = "standby";
+        this.mzpowerstatus = "off";
+        this.mute          = "off";
+        this.inputsel      = "CD";
+        this.volumestatus  = 45;
     }
 
     connect() {
@@ -44,81 +46,69 @@ class AvrSim {
 
         console.log(`Received : '${xData}'.`);
 
-        if ( xData === "PW?" ) {
-            if ( this.powerstatus === "on") {
-                console.log("Send: 'PWON'.");
-                this.socket.write( "PWON\r");
+        if ( xData.substr(0,2) === "PW") {
+            if ( xData === "PW?") {
+                console.log(`Sending : ${this.powerstatus}.`);
+                return this.powerstatus;
             } else {
-                console.log("Send: 'PWSTANDBY'.");
-                this.socket.write( "PWSTANDBY\r");
+                this.powerstatus = xData;
+                console.log(`Returning: ${this.powerstatus}.`);
             }
-        } else if ( xData === "PWON") {
-            this.powerstatus = "on";
-        } else if ( xData === "PWSTANDBY") {
-            this.powerstatus = "standby";
-        } else if ( xData === "MUON") {
-            this.mute = "on";
-        } else if ( xData === "MUOFF") {
-            this.mute = "off";
-        } else if ( xData === "MU?") {
-            if ( this.mute === "on") {
-                console.log("Send: 'MUON'.");
-                this.socket.write( "MUON\r");
+
+        } else if ( xData.substr(0,2) === "ZW") {
+
+            if ( xData === "ZW?") {
+                console.log(`Sending : ${this.mzpowerstatus}.`);
+                return this.mzpowerstatus;
             } else {
-                console.log("Send: 'MUOFF'.");
-                this.socket.write( "MUOFF\r");
+                this.mzpowerstatus = xData;
+                console.log(`Returning: ${this.mzpowerstatus}.`);
             }
-        } else if ( xData === "SIPHONO") {
-            this.inputsel = "PHONO";
-        } else if ( xData === "SICD") {
-            this.inputsel = "CD";
-        } else if ( xData === "SIDVD") {
-            this.inputsel = "DVD";
-        } else if ( xData === "SIBD") {
-            this.inputsel = "BD";
-        } else if ( xData === "SITV") {
-            this.inputsel = "TV";
-        } else if ( xData === "SISAT/CBL") {
-            this.inputsel = "SAT/CBL";
-        } else if ( xData === "SISAT") {
-            this.inputsel = "SAT";
-        } else if ( xData === "SIMPLAY") {
-            this.inputsel = "MPLAY";
-        } else if ( xData === "SIVCR") {
-            this.inputsel = "VCR";
-        } else if ( xData === "SIGAME") {
-            this.inputsel = "GAME";
-        } else if ( xData === "SIV.AUX") {
-            this.inputsel = "V.AUX";
-        } else if ( xData === "SITUNER") {
-            this.inputsel = "TUNER";
-        } else if ( xData === "SILASTFM") {
-            this.inputsel = "LASTFM";
-        } else if ( xData === "SIFLICKR") {
-            this.inputsel = "FLICKR";
-        } else if ( xData === "SIIRADIO") {
-            this.inputsel = "IRADIO";
-        } else if ( xData === "SISERVER") {
-            this.inputsel = "SERVER";
-        } else if ( xData === "SIFAVORITES") {
-            this.inputsel = "FAVORITES";
-        } else if ( xData === "CDR") {
-            this.inputsel = "CDR";
-        } else if ( xData === "SIAUX1") {
-            this.inputsel = "AUX1";
-        } else if ( xData === "SIAUX2") {
-            this.inputsel = "AUX2";
-        } else if ( xData === "SINET") {
-            this.inputsel = "NET";
-        } else if ( xData === "SINET/USB") {
-            this.inputsel = "NET/USB";
-        } else if ( xData === "SIM-XPORT") {
-            this.inputsel = "M-XPORT";
-        } else if ( xData === "SIUSB/IPOD") {
-            this.inputsel = "USB/IPOD";
-        } else if ( xData === "SI?") {
-            console.log(`Send: SI${this.inputsel}\r`);
-            this.socket.write( `SI${this.inputsel}\r`);
+
+        } else if ( xData.substr(0,2) === "MU") {
+
+            if ( xData === "MU?") {
+                console.log(`Sending : ${this.mutestatus}.`);
+                return this.mutestatus;
+            } else {
+                this.mutestatus = xData;
+                console.log(`Returning: ${this.mutestatus}.`);
+            }
+
+        } else if ( xData.substr(0,2) === "SI") {
+
+            if ( xData === "SI?") {
+                console.log(`Sending : ${this.inputsel}.`);
+                return this.inputsel;
+            } else {
+                this.inputsel = xData;
+                console.log(`Returning: ${this.inputsel}.`);
+            }
+
+        } else if ( xData.substr(0,2) === "MV") {
+
+            let re = /^MV(\d+)/i;
+
+            if ( xData === "MV?") {
+                console.log(`Sending : MV${this.volumestatus}.`);
+                return this.volumestatus;
+            } else if ( xData === "MVUP" ) {
+                this.volumestatus++;
+                console.log(`Returning: MV${this.volumestatus}.`);
+            } else if ( xData === "MVDOWN") {
+                this.volumestatus--;
+                console.log(`Returning: MV${this.volumestatus}.`);
+            } else {
+
+                let Ar = xData.match(re);
+
+                console.log( Ar );
+
+                if ( Ar !== null ) {
+                    this.volumestatus = Ar[1];
+                    console.log(`Returning: MV${this.volumestatus}.`);
+                }
+            }
         }
     }
 }

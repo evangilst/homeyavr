@@ -6,114 +6,62 @@ module.exports = function( grunt ) {
 
     grunt.initConfig({
 
-        m: {
+        defs: {
             srcDir:        "./src",
             srcSimDir:     "./avrsim",
 
             destDir:       "./dist/",
-            destDocDir:    "./dist/docs",
 
-            es5destDir:    "./dist/es5",
-            es5SimDir:     "./dist/es5/avrsim",
-            es5destAppDir: "./dist/es5/nl.evgilst.homeyavr",
-            es5rel:        "es5",
-
-            es6destDir:    "./dist/es6",
-            es6SimDir:     "./dist/es6/avrsim",
-            es6destAppDir: "/dist/es6/nl.evgilst.homeyavr",
-            es6rel:        "es6"
+            destDocDir:    "<%= defs.destDir %>/docs",
+            destSimDir:    "<%= defs.destDir %>/avrsim",
+            destAppDir:    "<%= defs.destDir %>/nl.evgilst.homeyavr"
         },
 
         clean: {
-            es5:    ["<%= m.es5destDir %>"],
-            es6:    ["<%= m.es6destDir %>"]
+            all:    ["<%= defs.destDir %>"],
+            docs:   ["<%= defs.destDocDir %>"],
+            sim:    ["<%= defs.destSimDir %>"],
+            appl:   ["<%= defs.destAppDir %>"]
         },
 
         copy: {
-            es5_homey_files: {
+            homey_files: {
                 files: [
                     {
                         expand: true,
-                        cwd:    "<%= m.srcDir %>",
+                        cwd:    "<%= defs.srcDir %>",
                         src:    "assets/**/*",
-                        dest:   "<%= m.es5destAppDir %>"
+                        dest:   "<%= defs.destAppDir %>"
                     },
                     {
                         expand: true,
-                        cwd:    "<%= m.srcDir %>",
+                        cwd:    "<%= defs.srcDir %>",
                         src:    "locales/**/*",
-                        dest:   "<%= m.es5destAppDir %>"
+                        dest:   "<%= defs.destAppDir %>"
                     },
                     {
                         expand: true,
-                        cwd:    "<%= m.srcDir %>",
+                        cwd:    "<%= defs.srcDir %>",
                         src:    "drivers/avr/assets/**/*",
-                        dest:   "<%= m.es5destAppDir %>"
+                        dest:   "<%= defs.destAppDir %>"
                     },
                     {
                         expand: true,
-                        cwd:    "<%= m.srcDir %>",
+                        cwd:    "<%= defs.srcDir %>",
                         src:    "drivers/avr/pair/**/*",
-                        dest:   "<%= m.es5destAppDir %>"
+                        dest:   "<%= defs.destAppDir %>"
                     },
-
                     {
                         expand: true,
-                        cwd:    "<%= m.srcDir %>",
+                        cwd:    "<%= defs.srcDir %>",
+                        src:    "drivers/avr/lib/conf/**/*.json",
+                        dest:   "<%= defs.destAppDir %>"
+                    },
+                    {
+                        expand: true,
+                        cwd:    "<%= defs.srcDir %>",
                         src:    "app.json",
-                        dest:   "<%= m.es5destAppDir %>"
-                    }
-                ]
-            },
-            es6_homey_files: {
-                files: [
-                    {
-                        expand: true,
-                        cwd:    "<%= m.srcDir %>",
-                        src:    "assets/**/*",
-                        dest:   "<%= m.es6destAppDir %>"
-                    },
-                    {
-                        expand: true,
-                        cwd:    "<%= m.srcDir %>",
-                        src:    "locales/**/*",
-                        dest:   "<%= m.es6destAppDir %>"
-                    },
-                    {
-                        expand: true,
-                        cwd:    "<%= m.srcDir %>",
-                        src:    "drivers/avr/accests/**/*",
-                        dest:   "<%= m.es6destAppDir %>"
-                    },
-                    {
-                        expand: true,
-                        cwd:    "<%= m.srcDir %>",
-                        src:    "drivers/avr/pair/**/*",
-                        dest:   "<%= m.es6destAppDir %>"
-                    },
-                    {
-                        expand: true,
-                        cwd:    "<%= m.srcDir %>",
-                        src:    "drivers/avr/lib/**/*",
-                        dest:   "<%= m.es6destAppDir %>"
-                    },
-                    {
-                        expand: true,
-                        cwd:    "<%= m.srcDir %>",
-                        src:    "app.json",
-                        dest:   "<%= m.es6destAppDir %>"
-                    },
-                    {
-                        expand: true,
-                        cwd:    "<%= m.srcDir %>",
-                        src:    "app.js",
-                        dest:   "<%= m.es6destAppDir %>"
-                    },
-                    {
-                        expand: true,
-                        cwd:    "<%= m.srcSimDir %>",
-                        src:    "avrsim.js",
-                        dest:   "<%= m.es6SimDir %>"
+                        dest:   "<%= defs.destAppDir %>"
                     }
                 ]
             }
@@ -123,20 +71,25 @@ module.exports = function( grunt ) {
             options: {
                 sourceMap: true
             },
-            dist: {
+            homey: {
                 files: {
-                    "<%= m.es5destAppDir %>/app.js":   "<%= m.srcDir %>/app.js",
+                    "<%= defs.destAppDir %>/app.js":   "<%= defs.srcDir %>/app.js",
 
-                    "<%= m.es5destAppDir %>/drivers/avr/driver.js":
-                            "<%= m.srcDir %>/drivers/avr/driver.js",
+                    "<%= defs.destAppDir %>/drivers/avr/driver.js":
+                            "<%= defs.srcDir %>/drivers/avr/driver.js",
 
-                    "<%= m.es5destAppDir %>/drivers/avr/lib/avr.js":
-                            "<%= m.srcDir %>/drivers/avr/lib/avr.js",
-                    "<%= m.es5destAppDir %>/drivers/avr/lib/avrtest.js":
-                            "<%= m.srcDir %>/drivers/avr/lib/avrtest.js",
+                    "<%= defs.destAppDir %>/drivers/avr/lib/avr.js":
+                            "<%= defs.srcDir %>/drivers/avr/lib/avr.js",
+                    "<%= defs.destAppDir %>/drivers/avr/lib/avrtest.js":
+                            "<%= defs.srcDir %>/drivers/avr/lib/avrtest.js",
 
-                    "<%= m.es5SimDir %>/avrsim.js":
-                            "<%= m.srcSimDir %>/avrsim.js"
+
+                }
+            },
+            "sim": {
+                files: {
+                    "<%= defs.destSimDir %>/avrsim.js":
+                            "<%= defs.srcSimDir %>/avrsim.js"
                 }
             }
         },
@@ -144,36 +97,40 @@ module.exports = function( grunt ) {
         jsdoc: {
             dist: {
                 src: [
-                    "<%= m.srcDir %>/app.js",
-                    "<%= m.srcDir %>/drivers/avr/driver.js",
-                    "<%= m.srcDir %>/drivers/avr/lib/avr.js",
-                    "<%= m.srcDir %>/drivers/avr/lib/sr7007.js"
+                    "<%= defs.srcDir %>/app.js",
+                    "<%= defs.srcDir %>/drivers/avr/driver.js",
+                    "<%= defs.srcDir %>/drivers/avr/lib/avr.js",
                 ],
                 options: {
-                    destination: "<%= m.destDocDir %>/docs"
+                    destination: "<%= defs.destDocDir %>"
                 }
             }
         }
     });
 
-    var es5BuildTasks = [
-        "clean:es5",
-        "copy:es5_homey_files",
-        "babel"
+    var buildApplication = [
+        "clean:appl",
+        "copy:homey_files",
+        "babel:homey"
     ];
 
-    var es6BuildTasks = [
-        "clean:es6",
-        "copy:es6_homey_files"
+    var buildSimulator = [
+        "clean:sim",
+        "babel:sim"
     ];
 
-    var jsDocTasks = [
+    var buildDocumentation = [
+        "clean:docs",
         "jsdoc"
     ];
 
-    grunt.registerTask("buildes5", es5BuildTasks);
-    grunt.registerTask("buildes6", es6BuildTasks);
-    grunt.registerTask("builddoc", jsDocTasks);
+    grunt.registerTask("buildapp", buildApplication);
+    grunt.registerTask("buildsim", buildSimulator);
+    grunt.registerTask("builddocs", buildDocumentation);
 
-    grunt.registerTask("builddist", [es5BuildTasks, es6BuildTasks, jsDocTasks]);
+    grunt.registerTask("buildall", function() {
+        grunt.task.run(buildApplication);
+        grunt.task.run(buildSimulator);
+        grunt.task.run(buildDocumentation);
+    });
 };

@@ -90,23 +90,6 @@
                 ]
             },
             {
-                "id": "checkpoweravr",
-                "title": {
-                    "en": "Get power status from avr.",
-                    "nl": "Haal power status op van avr"
-                },
-                "args": [
-                    {
-                        "name": "device",
-                        "type": "device",
-                        "placeholder": {
-                            "en": "Select avr",
-                            "nl": "Selecteer avr"
-                        }
-                    }
-                ]
-            },
-            {
                 "id": "mute",
                 "title": {
                     "en": "Turn mute on",
@@ -141,23 +124,6 @@
                 ]
             },
             {
-                "id": "checkmuteavr",
-                "title": {
-                    "en": "Get mute status from AVR",
-                    "nl": "Haal de mute status van de AVR"
-                },
-                "args": [
-                    {
-                        "name": "device",
-                        "type": "device",
-                        "placeholder": {
-                            "en": "Select amplifier",
-                            "nl": "Selecteer versterker"
-                        }
-                    }
-                ]
-            },
-            {
                 "id": "selectinput",
                 "title": {
                     "en": "Select input source",
@@ -179,6 +145,102 @@
                         "placeholder": {
                             "en": "Target selection",
                             "nl": "Gewenste bron"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "volumeup",
+                "title": {
+                    "en": "Turn volume up",
+                    "nl": "Zet volume harder"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "volumedown",
+                "title": {
+                    "en": "Turn volume down",
+                    "nl": "Zet volume zachter"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "setvolume",
+                "title": {
+                    "en": "set volume",
+                    "nl": "Zet volume"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    },
+                    {
+                        "name": "volumeNum",
+                        "type": "number" ,
+                        "min":  0,
+                        "max": 80,
+                        "placeholder": {
+                            "en": "new volume",
+                            "nl": "nieuw volume"
+                        }
+
+                    }
+                ]
+            },
+             {
+                "id": "main_zone_poweron",
+                "title": {
+                    "en": "Main zone power up.",
+                    "nl": "Zet main zone aan"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select avr",
+                            "nl": "Selecteer avr"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "main_zone_poweroff",
+                "title": {
+                    "en": "Main zone power off.",
+                    "nl": "Zet main zone uit"
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select avr",
+                            "nl": "Selecteer avr"
                         }
                     }
                 ]

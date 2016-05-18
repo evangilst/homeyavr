@@ -14,5 +14,9 @@
             "invalidIP":  "Invalid IPV4 IP address !.",
             "required":   "Invalid parameters detected !."
         }
+    },
+    "inputselection": {
+        "phono":          "GramaPhone"
     }
+
 }
