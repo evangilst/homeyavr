@@ -8,19 +8,19 @@ module.exports = function( grunt ) {
 
         defs: {
             srcDir:        "./src",
-            srcSimDir:     "./avrsim",
+            srcSimDir:     "<%= defs.srcDir %>/test",
 
             destDir:       "./dist/",
 
             destDocDir:    "<%= defs.destDir %>/docs",
-            destSimDir:    "<%= defs.destDir %>/avrsim",
+            destTstDir:    "<%= defs.destDir %>/test",
             destAppDir:    "<%= defs.destDir %>/nl.evgilst.homeyavr"
         },
 
         clean: {
             all:    ["<%= defs.destDir %>"],
             docs:   ["<%= defs.destDocDir %>"],
-            sim:    ["<%= defs.destSimDir %>"],
+            tst:    ["<%= defs.destTstDir %>"],
             appl:   ["<%= defs.destAppDir %>"]
         },
 
@@ -64,6 +64,16 @@ module.exports = function( grunt ) {
                         dest:   "<%= defs.destAppDir %>"
                     }
                 ]
+            },
+            test_files: {
+                files: [
+                    {
+                        expand: true,
+                        cwd:    "<%= defs.srcDir %>/drivers/avr/lib",
+                        src:    "conf/**/*.json",
+                        dest:   "<%= defs.destTstDir %>"
+                    }
+                ]
             }
         },
 
@@ -79,17 +89,17 @@ module.exports = function( grunt ) {
                             "<%= defs.srcDir %>/drivers/avr/driver.js",
 
                     "<%= defs.destAppDir %>/drivers/avr/lib/avr.js":
-                            "<%= defs.srcDir %>/drivers/avr/lib/avr.js",
-                    "<%= defs.destAppDir %>/drivers/avr/lib/avrtest.js":
-                            "<%= defs.srcDir %>/drivers/avr/lib/avrtest.js",
-
-
+                            "<%= defs.srcDir %>/drivers/avr/lib/avr.js"
                 }
             },
-            "sim": {
+            "tst": {
                 files: {
-                    "<%= defs.destSimDir %>/avrsim.js":
-                            "<%= defs.srcSimDir %>/avrsim.js"
+                    "<%= defs.destTstDir %>/avrsim.js":
+                            "<%= defs.srcSimDir %>/avrsim.js",
+                    "<%= defs.destTstDir %>/avrtest.js":
+                            "<%= defs.srcSimDir %>/avrtest.js",
+                    "<%= defs.destTstDir %>/avr.js":
+                            "<%= defs.srcDir %>/drivers/avr/lib/avr.js"
                 }
             }
         },
@@ -99,7 +109,7 @@ module.exports = function( grunt ) {
                 src: [
                     "<%= defs.srcDir %>/app.js",
                     "<%= defs.srcDir %>/drivers/avr/driver.js",
-                    "<%= defs.srcDir %>/drivers/avr/lib/avr.js",
+                    "<%= defs.srcDir %>/drivers/avr/lib/avr.js"
                 ],
                 options: {
                     destination: "<%= defs.destDocDir %>"
@@ -114,23 +124,24 @@ module.exports = function( grunt ) {
         "babel:homey"
     ];
 
-    var buildSimulator = [
-        "clean:sim",
-        "babel:sim"
-    ];
-
     var buildDocumentation = [
         "clean:docs",
         "jsdoc"
     ];
 
+    var buildTestEnv = [
+        "clean:tst",
+        "copy:test_files",
+        "babel:tst"
+    ];
+
     grunt.registerTask("buildapp", buildApplication);
-    grunt.registerTask("buildsim", buildSimulator);
+    grunt.registerTask("buildtest", buildTestEnv);
     grunt.registerTask("builddocs", buildDocumentation);
 
     grunt.registerTask("buildall", function() {
         grunt.task.run(buildApplication);
-        grunt.task.run(buildSimulator);
+        grunt.task.run(buildTestEnv);
         grunt.task.run(buildDocumentation);
     });
 };

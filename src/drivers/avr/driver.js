@@ -2,8 +2,26 @@
 
 let Avr = require("./lib/avr");
 
-let avrDevArray = [];
-let newDevInfo  = {};
+let avrDevArray  = [];
+let newDevInfo   = {};
+let my_Debug_Avr = 1 ;
+
+let prtDbg = (str) => {
+    if ( my_Debug_Avr === 1 ) {
+        //console.log(str);
+        Homey.log(str);
+    }
+};
+
+/**
+ * Gets the string defined in the locales files of homey.
+ *
+ * @param      {string}  str     The ID string
+ * @return     {string}  The 'locales' string for the ID.
+ */
+let getI18String = (str) => {
+    return Homey.manager("i18n").__(str);
+};
 
 /**
  * Deleting a AVR device
@@ -15,18 +33,18 @@ let newDevInfo  = {};
  */
 let deleted = (device, callback) => {
 
-    console.log("Marantzavr: delete device called");
-    console.log(`Marantzavr: delete_device: ${device.avrip}.`);
-    console.log(`Marantzavr: delete_device: ${device.avrport}.`);
-    console.log(`Marantzavr: delete_device: ${device.avrname}.`);
-    console.log(`Marantzavr: delete_device: ${device.avrindex}.`);
+    prtDbg("Marantzavr: delete device called");
+    prtDbg(`Marantzavr: delete_device: ${device.avrip}.`);
+    prtDbg(`Marantzavr: delete_device: ${device.avrport}.`);
+    prtDbg(`Marantzavr: delete_device: ${device.avrname}.`);
+    prtDbg(`Marantzavr: delete_device: ${device.avrindex}.`);
 
-    console.log("device :" , device);
+    prtDbg("device :" , device);
 
     if ( typeof(avrDevArray[device.avrindex]) === "undefined" ||
                 avrDevArray[device.avrindex]  === null ) {
 
-        callback( new Error("Device mismatch on deletion") , false);
+        callback( new Error( getI18String("error.dev_mis_del")), false );
 
     } else {
 
@@ -46,32 +64,33 @@ let deleted = (device, callback) => {
  */
 let init = (devices, callback ) => {
 
-    console.log("MarantzAvr: init devices called");
+    prtDbg("MarantzAvr: init devices called");
 
-    console.log("devices :" , devices);
+    prtDbg("devices :" , devices);
 
     if ( devices.length !== 0 ) {
 
         devices.forEach( (device) => {
-            console.log(`MarantzAvr: init: '${device.avrip}'.`);
-            console.log(`MarantzAvr: init: '${device.avrport}'.`);
-            console.log(`MarantzAvr: init: '${device.avrname}'.`);
-            console.log(`MarantzAvr: init: '${device.avrtype}'.`);
-            console.log(`MarantzAvr: init: '${device.avrindex}'.`);
+            prtDbg(`MarantzAvr: init: '${device.avrip}'.`);
+            prtDbg(`MarantzAvr: init: '${device.avrport}'.`);
+            prtDbg(`MarantzAvr: init: '${device.avrname}'.`);
+            prtDbg(`MarantzAvr: init: '${device.avrtype}'.`);
+            prtDbg(`MarantzAvr: init: '${device.avrindex}'.`);
 
             avrDevArray[ device.avrindex ] = new Avr( device.avrport,
                                                       device.avrip,
                                                       device.avrname,
                                                       device.avrtype  );
 
-            console.log(`avrDevArray slot ${device.avrindex}: ${avrDevArray[device.avrindex]}`);
+            prtDbg(`avrDevArray slot ${device.avrindex}: `);
+            prtDbg( device );
         });
 
         for ( let I = 0 ; I < avrDevArray.length ; I++ ) {
             let host = avrDevArray[I].getHostname();
             let port = avrDevArray[I].getPort();
 
-            console.log(`Entry ${I} has ${host}:${port}.`);
+            prtDbg(`Entry ${I} has ${host}:${port}.`);
         }
     }
 
@@ -91,16 +110,19 @@ let pair = (socket) => {
 
         .on("list_devices", (data, callback) => {
 
-            console.log("MarantzAvr: pair => list_devices called.");
+            prtDbg( data );
 
-            console.log(`MarantzAvr: pair => list_devices: '${newDevInfo.avrip}'.`);
-            console.log(`MarantzAvr: pair => list_devices: '${newDevInfo.avrport}'.`);
-            console.log(`MarantzAvr: pair => list_devices: '${newDevInfo.avrname}'.`);
-            console.log(`MarantzAvr: pair => list_devices: '${newDevInfo.avrtype}'.`);
-            console.log(`MarantzAvr: pair => list_devices: '${newDevInfo.avrindex}'.`);
+            prtDbg("MarantzAvr: pair => list_devices called.");
+
+            prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrip}'.`);
+            prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrport}'.`);
+            prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrname}'.`);
+            prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrtype}'.`);
+            prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrindex}'.`);
 
             let devices = [
                 {
+                    name: newDevInfo.avrname,
                     data: {
                         id:       newDevInfo.avrname,
                         avrip:    newDevInfo.avrip,
@@ -108,25 +130,24 @@ let pair = (socket) => {
                         avrname:  newDevInfo.avrname,
                         avrtype:  newDevInfo.avrtype,
                         avrindex: newDevInfo.avrindex
-                    },
-                    name: newDevInfo.avrname
+                    }
                 }
             ];
 
-            console.log(`MarantzAvr_get_devices: avrIndex is using ${newDevInfo.avrindex}.`);
+            prtDbg(`MarantzAvr_get_devices: avrIndex is using ${newDevInfo.avrindex}.`);
 
             avrDevArray[ newDevInfo.avrindex ] = new Avr( newDevInfo.avrport,
                                                           newDevInfo.avrip,
                                                           newDevInfo.avrname,
                                                           newDevInfo.avrtype  );
 
-            console.log(`avrDevArray slot ${newDevInfo.avrindex} filled.`);
+            prtDbg(`avrDevArray slot ${newDevInfo.avrindex} filled.`);
 
             for ( let I = 0 ; I < avrDevArray.length ; I++ ) {
                 let host = avrDevArray[I].getHostname();
                 let port = avrDevArray[I].getPort();
 
-                console.log(`Entry ${I} has ${host}:${port}.`);
+                prtDbg(`Entry ${I} has ${host}:${port}.`);
             }
 
             newDevInfo = {};
@@ -136,15 +157,15 @@ let pair = (socket) => {
 
         .on("get_devices", (data) => {
 
-            console.log("MarantzAvr: pair => get_devices called.");
-            console.log(`MarantzAvr: pair => get_devices: got IP address '${data.avrip}'.`);
-            console.log(`MarantzAvr: pair => get_devices: got port '${data.avrport}'.`);
-            console.log(`MarantzAvr: pair => get_devices: got AVR name '${data.avrname}'.`);
-            console.log(`MarantzAvr: pair => get_devices: got AVR type '${data.avrtype}'.`);
+            prtDbg("MarantzAvr: pair => get_devices called.");
+            prtDbg(`MarantzAvr: pair => get_devices: got IP address '${data.avrip}'.`);
+            prtDbg(`MarantzAvr: pair => get_devices: got port '${data.avrport}'.`);
+            prtDbg(`MarantzAvr: pair => get_devices: got AVR name '${data.avrname}'.`);
+            prtDbg(`MarantzAvr: pair => get_devices: got AVR type '${data.avrtype}'.`);
 
             let avrCurrIndex = -1 ;
 
-            console.log("avrDevArray :", avrDevArray.length );
+            prtDbg("avrDevArray :", avrDevArray.length );
 
             if ( avrDevArray.length === 0 ) {
                 // Empty device array no devices configured yet.
@@ -154,7 +175,7 @@ let pair = (socket) => {
                 for ( let I = 0 ; I <= avrDevArray.length; I++ ){
 
                     if ( typeof(avrDevArray[I]) === "undefined" || avrDevArray[I] === null ) {
-                        console.log("found open slot ", I );
+                        prtDbg("found open slot ", I );
                         avrCurrIndex = I ;
                         break;
                     }
@@ -169,14 +190,66 @@ let pair = (socket) => {
                 avrindex: avrCurrIndex
             };
 
-            console.log("emitting a continue");
             socket.emit("continue", null );
         })
 
         .on("disconnect" , () => {
-            console.log("Marantz app - User aborted pairing, or pairing is finished");
+            prtDbg("Marantz app - User aborted pairing, or pairing is finished");
         });
 };
+
+let capabilities = {
+
+    onoff: {
+        get: (device_data,callback) => {
+            if ( device_data instanceof Error || !device_data) return callback(device_data);
+
+            if ( typeof( avrDevArray[ device_data.avrindex ]) !== "undefined" &&
+                     avrDevArray[ device_data.avrindex ]  !== null  ) {
+
+                let powerStatus = avrDevArray[ device_data.avrindex ].getPowerOnOffState();
+
+                prtDbg("powerStatus : " + powerStatus );
+                callback(null, powerStatus);
+            } else {
+                callback( true, false );
+            }
+        },
+        set: (device_data, data, callback) => {
+
+            if ( device_data instanceof Error || !device_data) return callback(device_data);
+
+            if ( typeof( avrDevArray[ device_data.avrindex ]) !== "undefined" &&
+                     avrDevArray[ device_data.avrindex ]  !== null  ) {
+
+                if ( data == true ) {
+                    avrDevArray[ device_data.avrindex ].powerOn();
+                } else {
+                    avrDevArray[ device_data.avrindex ].powerOff();
+                }
+
+                callback(null, true);
+            } else {
+                callback( true, false );
+            }
+        }
+    }
+};
+
+/**************************************************
+ * Homey is shutting down/ reboots, Close the open network connections.
+ **************************************************/
+
+Homey.on("unload" , () => {
+
+    for ( let I = 0 ; I < avrDevArray.length ; I++ ) {
+        if ( typeof( avrDevArray[ I ]) !== "undefined" &&
+                     avrDevArray[ I ]  !== null  ) {
+
+            avrDevArray[I].diconnect();
+        }
+    }
+});
 
 /**************************************************
  * power methodes, valid for all Marantz devices.
@@ -193,8 +266,8 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
+            prtDbg("Error: Unknown device.");
+            callback(new Error(getI18String("error.unknowdev")), false );
         }
     })
 
@@ -207,8 +280,8 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
+            prtDbg("Error: Unknown device.");
+            callback(new Error(getI18String("error.unknowdev")), false );
         }
     });
 
@@ -227,8 +300,8 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
+            prtDbg("Error: Unknown device.");
+            callback(new Error(getI18String("error.unknowdev")), false );
         }
     })
 
@@ -241,8 +314,8 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
+            prtDbg("Error: Unknown device.");
+            callback(new Error(getI18String("error.unknowdev")), false );
         }
     });
 
@@ -260,8 +333,8 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
+            prtDbg("Error: Unknown device.");
+            callback(new Error(getI18String("error.unknowdev")), false );
         }
     })
 
@@ -274,8 +347,8 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
+            prtDbg("Error: Unknown device.");
+            callback(new Error(getI18String("error.unknowdev")), false );
         }
     });
 
@@ -287,20 +360,28 @@ Homey.manager("flow")
 
     .on("action.selectinput.input.autocomplete", (callback, args) => {
 
-        console.log( args.device.avrindex );
+        prtDbg( args.device.avrindex );
 
         let items = avrDevArray[ args.device.avrindex ].getValidInputSelection();
 
-        console.log( items );
+        let cItems = [];
 
-        callback(null, items);
+        for ( let I = 0 ; I < items.length; I++ ){
+            let x = {};
+            x.command = items[I].command;
+            x.name    = getI18String(items[I].name);
+
+            cItems.push(x);
+        }
+
+        callback(null, cItems);
     })
 
     .on("action.selectinput", (callback, args) => {
 
-        console.log( args );
+        prtDbg( args );
 
-        avrDevArray[ args.device.avrindex ].selectCorrectInputSource(args.input.command);
+        avrDevArray[ args.device.avrindex ].sendInputSourceCommand(args.input.command);
 
         callback(null, true);
     });
@@ -320,8 +401,8 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
+            prtDbg("Error: Unknown device.");
+            callback(new Error(getI18String("error.unknowdev")), false );
         }
     })
 
@@ -334,8 +415,8 @@ Homey.manager("flow")
 
             callback(null, true);
         } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
+            prtDbg("Error: Unknown device.");
+            callback(new Error(getI18String("error.unknowdev")), false );
         }
     })
     .on("action.setvolume" , (callback,args) => {
@@ -348,11 +429,84 @@ Homey.manager("flow")
             callback(null, true);
 
         } else {
-            console.log("Error: Unknown device.");
-            callback(new Error("unknown device."), false );
+            prtDbg("Error: Unknown device.");
+            callback(new Error(getI18String("error.unknowdev")), false );
         }
     }) ;
+
+/**************************************************
+ * Surround selection based on the available sources per AVR.
+ **************************************************/
+
+Homey.manager("flow")
+
+    .on("action.surround.input.autocomplete", (callback, args) => {
+
+        prtDbg( args.device.avrindex );
+
+        let items = avrDevArray[ args.device.avrindex ].getValidSurround();
+
+        let cItems = [];
+
+        for ( let I = 0 ; I < items.length; I++ ){
+            let x = {};
+            x.command = items[I].command;
+            x.name    = getI18String(items[I].name);
+
+            cItems.push(x);
+        }
+
+        callback(null, cItems);
+    })
+
+    .on("action.surround", (callback, args) => {
+
+        prtDbg( args );
+
+        avrDevArray[ args.device.avrindex ].sendSurroundCommand(args.input.command);
+
+        callback(null, true);
+    });
+
+/**************************************************
+ * eco methodes, based on the support per AVR.
+ *
+ * NEED TO BE CHANGED:
+ * Needs to be conditional: should be available only when AVR supports ECO
+ * Currently it needs to defined in app.json regardsless if it is supported or not
+ * Currently if not supported an array with 1 entry "not supported" is returned.
+ **************************************************/
+Homey.manager("flow")
+
+    .on("action.eco.input.autocomplete", (callback, args) => {
+
+        prtDbg( args.device.avrindex );
+
+        let items = avrDevArray[ args.device.avrindex ].getValidEcoCommands();
+
+        let cItems = [];
+
+        for ( let I = 0 ; I < items.length; I++ ){
+            let x = {};
+            x.command = items[I].command;
+            x.name    = getI18String(items[I].name);
+
+            cItems.push(x);
+        }
+
+        callback(null, cItems);
+    })
+
+    .on("action.eco", (callback, args) => {
+
+        prtDbg( args );
+
+        avrDevArray[ args.device.avrindex ].sendEcoCommand(args.input.command);
+
+        callback(null, true);
+    });
 
 module.exports.deleted      = deleted;
 module.exports.init         = init;
 module.exports.pair         = pair;
+module.exports.capabilities = capabilities;

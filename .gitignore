@@ -4,3 +4,4 @@ dist
 node_modules
 typings
 save
+src/gen/conf

@@ -9,11 +9,13 @@ class AvrSim {
         this.port   = sPort;
         this.socket = null;
 
-        this.powerstatus   = "standby";
-        this.mzpowerstatus = "off";
-        this.mute          = "off";
-        this.inputsel      = "CD";
+        this.powerstatus   = "PWSTANDBY";
+        this.mzpowerstatus = "ZMOFF";
+        this.mute          = "MUOFF";
+        this.inputsel      = "SICD";
         this.volumestatus  = 45;
+        this.surroundMode  = "MSAUTO";
+        this.ecoMode       = "ECOON";
     }
 
     connect() {
@@ -55,9 +57,9 @@ class AvrSim {
             console.log(`Returning : ${this.powerstatus}.`);
             this.socket.write( this.powerstatus);
 
-        } else if ( xData.substr(0,2) === "ZW") {
+        } else if ( xData.substr(0,2) === "ZM") {
 
-            if ( xData !== "ZW?" ) {
+            if ( xData !== "ZM?" ) {
                 this.mzpowerstatus = xData ;
             }
             console.log(`Returning : ${this.mzpowerstatus}.`);
@@ -100,6 +102,20 @@ class AvrSim {
             }
             console.log(`Returning : MV${this.volumestatus}.`);
             this.socket.write( "MV" + this.volumestatus );
+        } else if ( xData.substr(0,2) === "MS") {
+
+            if ( xData !== "MS?" ) {
+                this.surroundMode = xData ;
+            }
+            console.log(`Returning : ${this.surroundMode}.`);
+            this.socket.write( this.surroundMode);
+        } else if ( xData.substr(0,2) === "EC") {
+
+            if ( xData !== "ECO?" ) {
+                this.ecoMode = xData ;
+            }
+            console.log(`Returning : ${this.ecoMode }.`);
+            this.socket.write( this.ecoMode );
         }
     }
 }

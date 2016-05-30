@@ -1,23 +1,24 @@
 {
-    "name": "homeyavr",
-    "version": "0.0.1",
-    "description": "Homey AVR application",
-    "main": "",
-    "dependencies": {},
-    "devDependencies": {
-        "babel-eslint": "^5.0.0",
-        "eslint": "^2.2.0",
-        "grunt": "~0.4.2",
-        "grunt-babel": "^5.0.3",
-        "grunt-contrib-clean": "~0.5.0",
-        "grunt-contrib-copy": "~0.8.0",
-        "grunt-eslint": "~17.3.1",
-        "grunt-jsdoc": "^1.1.0",
-        "matchdep": "~0.3.0"
-    },
-    "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
-    },
-    "author": "Evert van Gilst",
-    "license": "ISC"
+  "name": "homeyavr",
+  "version": "0.0.1",
+  "description": "Homey AVR application",
+  "main": "",
+  "dependencies": {},
+  "devDependencies": {
+    "babel-eslint": "^5.0.0",
+    "eslint": "^2.2.0",
+    "excel": "^0.1.5",
+    "grunt": "~0.4.2",
+    "grunt-babel": "^5.0.3",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-copy": "~0.8.0",
+    "grunt-eslint": "~17.3.1",
+    "grunt-jsdoc": "^1.1.0",
+    "matchdep": "~0.3.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Evert van Gilst",
+  "license": "ISC"
 }

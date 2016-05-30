@@ -15,8 +15,84 @@
             "required":   "Invalid parameters detected !."
         }
     },
-    "inputselection": {
-        "phono":          "GramaPhone"
+    "error": {
+        "dev_mis_del":    "Device mismatch on deletion.",
+        "unknowdev":      "Unknown device in flow methods.",
+        "error.cmdnf":    "Command not found in AVR config file."
+    },
+    "power": {
+        "on":             "Power on",
+        "off":            "Power off/standby"
+    },
+    "mzpower": {
+        "on":             "Main zone power on",
+        "off":            "Main zone power off/standby"
+    },
+    "mute": {
+        "on":             "Mute on",
+        "off":            "Mute off"
+    },
+    "inputource": {
+        "phono":          "Gramaphone",
+        "cd":             "CD player",
+        "dvd":            "DVD player",
+        "bd":             "Bluray player",
+        "tv":             "TV",
+        "sat_cbl":        "Satelite/Cable",
+        "sat":            "Satelite",
+        "mplay":          "Media player",
+        "vcr":            "1_VCR player" ,
+        "game":           "Game console",
+        "v_aux":          "Video/aux",
+        "tuner":          "Tuner",
+        "spotify":        "Spotify",
+        "napster":        "Napster",
+        "flickr":         "Flickr",
+        "iradio":         "Internet radio",
+        "server":         "Server",
+        "favorites":      "favorites",
+        "cdr":            "CDR player",
+        "aux1":           "AUX1",
+        "aux2":           "AUX2",
+        "aux3":           "AUX3",
+        "aux4":           "AUX4",
+        "aux5":           "AUX5",
+        "aux6":           "AUX6",
+        "aux7":           "AUX7",
+        "net":            "Online music",
+        "net_usb":        "Net_USB",
+        "bt":             "Bluetooth",
+        "mxport":         "MXport",
+        "usb_ipod":       "Usb-IPOD",
+        "usb":            "USB",
+        "ipd":            "IPOD",
+        "irp":            "Internet Radion and recent play",
+        "fvp":            "Online music and play favorite",
+        "otp":            "One Touch Play"
+    },
+    "surround": {
+        "movie":          "Surrond movie",
+        "music":          "Surround music",
+        "game":           "Surroud game console",
+        "direct":         "Surround direct",
+        "pure":           "Surround direct pure",
+        "stereo":         "Surround stereo",
+        "auto":           "Auto surround",
+        "neural":         "2_Surround neural",
+        "standard":       "Surround standard",
+        "dolby":          "Surround dolby digital",
+        "dts":            "Surround DTS",
+        "mchstereo":      "Multi chanel stereo surround",
+        "matrix":         "Surround matrix",
+        "virtual":        "Surround virtual",
+        "left":           "Surround left",
+        "right":          "Surround right"
+    },
+    "eco": {
+        "on":             "Eco mode on",
+        "off":            "Eco mode off",
+        "auto":           "Automatic eco mode",
+        "ns":             "Not supported"
     }
 
 }

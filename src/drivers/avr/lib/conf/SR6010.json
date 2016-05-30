@@ -1,0 +1,513 @@
+{
+    "power": [
+        {
+            "prog_id": "power_on",
+            "valid": true,
+            "command": "PWON",
+            "text": "main power on",
+            "name": "power.on"
+        },
+        {
+            "prog_id": "power_off",
+            "valid": true,
+            "command": "PWSTANDBY",
+            "text": "main power off",
+            "name": "power.off"
+        },
+        {
+            "prog_id": "power_request",
+            "valid": true,
+            "command": "PW?",
+            "text": "",
+            "name": "power.request"
+        }
+    ],
+    "main_zone_power": [
+        {
+            "prog_id": "power_on",
+            "valid": true,
+            "command": "ZMON",
+            "text": "main zone power on",
+            "name": "mzpower.on"
+        },
+        {
+            "prog_id": "power_off",
+            "valid": true,
+            "command": "ZMOFF",
+            "text": "main zone power off",
+            "name": "mzpower.off"
+        },
+        {
+            "prog_id": "power_request",
+            "valid": true,
+            "command": "ZM?",
+            "text": "",
+            "name": "mzpower.request"
+        }
+    ],
+    "volume": [
+        {
+            "prog_id": "volume_up",
+            "valid": true,
+            "command": "MVUP",
+            "text": "master volume up",
+            "name": "volume.up"
+        },
+        {
+            "prog_id": "volume_down",
+            "valid": true,
+            "command": "MVDOWN",
+            "text": "master volume down",
+            "name": "volume.down"
+        },
+        {
+            "prog_id": "volume_set",
+            "valid": true,
+            "command": "MV",
+            "text": "set master volume",
+            "name": "volume.set"
+        },
+        {
+            "prog_id": "volume_request",
+            "valid": true,
+            "command": "MV?",
+            "text": "",
+            "name": "volume.request"
+        }
+    ],
+    "mute": [
+        {
+            "prog_id": "mute_on",
+            "valid": true,
+            "command": "MUON",
+            "text": "mute on",
+            "name": "mute.on"
+        },
+        {
+            "prog_id": "mute_off",
+            "valid": true,
+            "command": "MUOFF",
+            "text": "mute off",
+            "name": "mute.off"
+        },
+        {
+            "prog_id": "m_request",
+            "valid": true,
+            "command": "MU?",
+            "text": "",
+            "name": "mute.request"
+        }
+    ],
+    "inputsource": [
+        {
+            "prog_id": "i_phono",
+            "valid": true,
+            "command": "SIPHONO",
+            "text": "phono",
+            "name": "inputsource.phono"
+        },
+        {
+            "prog_id": "i_cd",
+            "valid": true,
+            "command": "SICD",
+            "text": "cd",
+            "name": "inputsource.cd"
+        },
+        {
+            "prog_id": "i_dvd",
+            "valid": true,
+            "command": "SIDVD",
+            "text": "dvd",
+            "name": "inputsource..dvd"
+        },
+        {
+            "prog_id": "i_bd",
+            "valid": true,
+            "command": "SIBD",
+            "text": "blueray player",
+            "name": "inputsource.bd"
+        },
+        {
+            "prog_id": "i_tv",
+            "valid": true,
+            "command": "SITV",
+            "text": "tv",
+            "name": "inputsource.tv"
+        },
+        {
+            "prog_id": "i_sat_cbl",
+            "valid": true,
+            "command": "SISAT/CBL ",
+            "text": "satelite plus cable",
+            "name": "inputsource.sat_cbl"
+        },
+        {
+            "prog_id": "i_sat",
+            "valid": false,
+            "command": "SISAT",
+            "text": "satelite",
+            "name": "inputsource.sat"
+        },
+        {
+            "prog_id": "i_mplay",
+            "valid": true,
+            "command": "SIMPLAY",
+            "text": "media player",
+            "name": "inputsource.mplay"
+        },
+        {
+            "prog_id": "i_vcr",
+            "valid": false,
+            "command": "SIVCR",
+            "text": "vcr player",
+            "name": "inputsource.vcr"
+        },
+        {
+            "prog_id": "i_game",
+            "valid": true,
+            "command": "SIGAME",
+            "text": "game console",
+            "name": "inputsource.game"
+        },
+        {
+            "prog_id": "i_vaux",
+            "valid": false,
+            "command": "SIV.AUX",
+            "text": "v.aux",
+            "name": "inputsource.v_aux"
+        },
+        {
+            "prog_id": "i_tuner",
+            "valid": true,
+            "command": "SITUNER",
+            "text": "tuner",
+            "name": "inputsource.tuner"
+        },
+        {
+            "prog_id": "i_spotify",
+            "valid": false,
+            "command": "SISPOTIFY",
+            "text": "Spotify",
+            "name": "inputsource.spotify"
+        },
+        {
+            "prog_id": "i_napster",
+            "valid": false,
+            "command": "SINAPSTER",
+            "text": "Napster",
+            "name": "inputsource.napster"
+        },
+        {
+            "prog_id": "i_flickr",
+            "valid": false,
+            "command": "SIFLICKR",
+            "text": "Flickr",
+            "name": "inputsource.flickr"
+        },
+        {
+            "prog_id": "i_iradio",
+            "valid": true,
+            "command": "SIIRADIO",
+            "text": "Internet radio",
+            "name": "inputsource.iradio"
+        },
+        {
+            "prog_id": "i_server",
+            "valid": true,
+            "command": "SISERVER",
+            "text": "Server",
+            "name": "inputsource.server"
+        },
+        {
+            "prog_id": "i_favorites",
+            "valid": true,
+            "command": "SIFAVORITES",
+            "text": "Favorites",
+            "name": "inputsource.favorites"
+        },
+        {
+            "prog_id": "i_cdr",
+            "valid": false,
+            "command": "SICDR",
+            "text": "CDR player",
+            "name": "inputsource.cdr"
+        },
+        {
+            "prog_id": "i_aux1",
+            "valid": true,
+            "command": "SIAUX1",
+            "text": "aux1",
+            "name": "inputsource.aux1"
+        },
+        {
+            "prog_id": "i_aux2",
+            "valid": true,
+            "command": "SIAUX2",
+            "text": "aux2",
+            "name": "inputsource.aux2"
+        },
+        {
+            "prog_id": "i_aux3",
+            "valid": false,
+            "command": "SIAUX3",
+            "text": "aux3",
+            "name": "inputsource.aux3"
+        },
+        {
+            "prog_id": "i_aux4",
+            "valid": false,
+            "command": "SIAUX4",
+            "text": "aux4",
+            "name": "inputsource.aux4"
+        },
+        {
+            "prog_id": "i_aux5",
+            "valid": false,
+            "command": "SIAUX5",
+            "text": "aux5",
+            "name": "inputsource.aux5"
+        },
+        {
+            "prog_id": "i_aux6",
+            "valid": false,
+            "command": "SIAUX6",
+            "text": "aux6",
+            "name": "inputsource.aux6"
+        },
+        {
+            "prog_id": "i_aux7",
+            "valid": false,
+            "command": "SIAUX7",
+            "text": "aux7",
+            "name": "inputsource.aux7"
+        },
+        {
+            "prog_id": "i_net",
+            "valid": true,
+            "command": "SINET",
+            "text": "Online music",
+            "name": "inputsource.net"
+        },
+        {
+            "prog_id": "i_net_usb",
+            "valid": false,
+            "command": "SINET/USB",
+            "text": "net usb",
+            "name": "inputsource.net_usb"
+        },
+        {
+            "prog_id": "i_bt",
+            "valid": true,
+            "command": "SIBT",
+            "text": "Bluetooth",
+            "name": "inputsource.bt"
+        },
+        {
+            "prog_id": "i_mxport",
+            "valid": false,
+            "command": "SIMXPORT",
+            "text": "Mxport",
+            "name": "inputsource.mxport"
+        },
+        {
+            "prog_id": "i_usb_ipod",
+            "valid": true,
+            "command": "SIUSB/IPOD",
+            "text": "usb Ipod",
+            "name": "inputsource.usr_ipod"
+        },
+        {
+            "prog_id": "i_usb",
+            "valid": true,
+            "command": "SIUSB",
+            "text": "Usb Ipod and start USB",
+            "name": "inputsource.usb"
+        },
+        {
+            "prog_id": "i_ipd",
+            "valid": true,
+            "command": "SIIPD",
+            "text": "USB Ipod and start Ipod",
+            "name": "inputsource.ipd"
+        },
+        {
+            "prog_id": "i_irp",
+            "valid": true,
+            "command": "SIIRP",
+            "text": "Internet radio and recent play",
+            "name": "inputsouce.irp"
+        },
+        {
+            "prog_id": "i_fvp",
+            "valid": true,
+            "command": "SIFVP",
+            "text": "Online music amd favorites play",
+            "name": "inputsource.fvp"
+        },
+        {
+            "prog_id": "i_otp",
+            "valid": false,
+            "command": "SIOTP",
+            "text": "one touch play",
+            "name": "inputsource.otp"
+        },
+        {
+            "prog_id": "i_request",
+            "valid": true,
+            "command": "SI?",
+            "text": "",
+            "name": "inputsource.request"
+        }
+    ],
+    "eco": [
+        {
+            "prog_id": "eco_on",
+            "valid": true,
+            "command": "ECOON",
+            "text": "eco on",
+            "name": "eco.on"
+        },
+        {
+            "prog_id": "eco_auto",
+            "valid": true,
+            "command": "ECOAUTO",
+            "text": "eco auto",
+            "name": "eco.auto"
+        },
+        {
+            "prog_id": "eco_off",
+            "valid": true,
+            "command": "ECOOFF",
+            "text": "eco off",
+            "name": "eco.off"
+        },
+        {
+            "prog_id": "eco_request",
+            "valid": true,
+            "command": "ECO?",
+            "text": "",
+            "name": "eco.request"
+        }
+    ],
+    "surround": [
+        {
+            "prog_id": "s_movie",
+            "valid": true,
+            "command": "MSMOVIE",
+            "text": "surround movie",
+            "name": "surround.movie"
+        },
+        {
+            "prog_id": "s_music",
+            "valid": true,
+            "command": "MSMUSIC",
+            "text": "surround music",
+            "name": "surround.music"
+        },
+        {
+            "prog_id": "s_game",
+            "valid": true,
+            "command": "MSGAME",
+            "text": "surround game console",
+            "name": "surround.game"
+        },
+        {
+            "prog_id": "s_direct",
+            "valid": true,
+            "command": "MSDIRECT",
+            "text": "surround direct",
+            "name": "surround.direct"
+        },
+        {
+            "prog_id": "s_pure",
+            "valid": true,
+            "command": "MSPURE DIRECT",
+            "text": "surround pure direct",
+            "name": "surround.pure"
+        },
+        {
+            "prog_id": "s_stereo",
+            "valid": true,
+            "command": "MSSTEREO",
+            "text": "surround stereo",
+            "name": "surround.stereo"
+        },
+        {
+            "prog_id": "s_auto",
+            "valid": true,
+            "command": "MSAUTO",
+            "text": "surround auto",
+            "name": "surround.auto"
+        },
+        {
+            "prog_id": "s_neural",
+            "valid": false,
+            "command": "MSNEURAL",
+            "text": "surround neural",
+            "name": "surround.neural"
+        },
+        {
+            "prog_id": "s_standard",
+            "valid": false,
+            "command": "MSSTANDARD",
+            "text": "surround standard",
+            "name": "surround.standard"
+        },
+        {
+            "prog_id": "s_dolby",
+            "valid": true,
+            "command": "MSDOLBY DIGITAL",
+            "text": "surround dolby",
+            "name": "surround.dolby"
+        },
+        {
+            "prog_id": "s_dts",
+            "valid": true,
+            "command": "MSDTS SURROUND",
+            "text": "surround dts",
+            "name": "surround.dts"
+        },
+        {
+            "prog_id": "s_mchstereo",
+            "valid": true,
+            "command": "MSMCH STEREO",
+            "text": "surround multi channel stereo",
+            "name": "surround.mchstereo"
+        },
+        {
+            "prog_id": "s_matrix",
+            "valid": false,
+            "command": "MSMATRIX",
+            "text": "surround matrix",
+            "name": "surround.matrix"
+        },
+        {
+            "prog_id": "s_virtual",
+            "valid": true,
+            "command": "MSVIRTUAL",
+            "text": "surround virtaul",
+            "name": "surround.virtual"
+        },
+        {
+            "prog_id": "s_left",
+            "valid": true,
+            "command": "MSLEFT",
+            "text": "surround left",
+            "name": "surround.left"
+        },
+        {
+            "prog_id": "s_right",
+            "valid": true,
+            "command": "MSRIGHT",
+            "text": "surround right",
+            "name": "surround.right"
+        },
+        {
+            "prog_id": "s_request",
+            "valid": true,
+            "command": "MS?",
+            "text": "",
+            "name": "surround.request"
+        }
+    ]
+}

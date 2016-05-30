@@ -141,9 +141,8 @@
                     {
                         "name": "input",
                         "type": "autocomplete",
-                        "filter": "&chktext=DVD",
                         "placeholder": {
-                            "en": "Target selection",
+                            "en": "Target Selection",
                             "nl": "Gewenste bron"
                         }
                     }
@@ -211,7 +210,7 @@
                     }
                 ]
             },
-             {
+            {
                 "id": "main_zone_poweron",
                 "title": {
                     "en": "Main zone power up.",
@@ -241,6 +240,56 @@
                         "placeholder": {
                             "en": "Select avr",
                             "nl": "Selecteer avr"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "surround",
+                "title": {
+                    "en": "Select surround mode",
+                    "nl": "Selecteer surround mode."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    },
+                    {
+                        "name": "input",
+                        "type": "autocomplete",
+                        "placeholder": {
+                            "en": "Target Selection",
+                            "nl": "Gewenste bron"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "eco",
+                "title": {
+                    "en": "Select eco mode",
+                    "nl": "Selecteer eco mode."
+                },
+                "args": [
+                    {
+                        "name": "device",
+                        "type": "device",
+                        "placeholder": {
+                            "en": "Select amplifier",
+                            "nl": "Selecteer versterker"
+                        }
+                    },
+                    {
+                        "name": "input",
+                        "type": "autocomplete",
+                        "placeholder": {
+                            "en": "Target mode",
+                            "nl": "Gewenste mode"
                         }
                     }
                 ]
