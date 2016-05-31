@@ -8,8 +8,10 @@ let my_Debug_Avr = 1 ;
 
 let prtDbg = (str) => {
     if ( my_Debug_Avr === 1 ) {
+        let date = new Date();
+        let dateStr = date.toISOString();
         //console.log(str);
-        Homey.log(str);
+        Homey.log(`${dateStr}-${str}`);
     }
 };
 
@@ -66,8 +68,6 @@ let init = (devices, callback ) => {
 
     prtDbg("MarantzAvr: init devices called");
 
-    prtDbg("devices :" , devices);
-
     if ( devices.length !== 0 ) {
 
         devices.forEach( (device) => {
@@ -82,8 +82,8 @@ let init = (devices, callback ) => {
                                                       device.avrname,
                                                       device.avrtype  );
 
-            prtDbg(`avrDevArray slot ${device.avrindex}: `);
-            prtDbg( device );
+            //prtDbg(`avrDevArray slot ${device.avrindex}: `);
+            //prtDbg( device );
         });
 
         for ( let I = 0 ; I < avrDevArray.length ; I++ ) {
@@ -233,6 +233,105 @@ let capabilities = {
                 callback( true, false );
             }
         }
+    }
+};
+
+let setSettings = (device_data) => {
+
+    prtDbg("SetSettings called");
+    prtDbg(device_data);
+};
+
+let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
+
+    prtDbg( JSON.stringify(device_data));
+    prtDbg( JSON.stringify(newSet));
+    prtDbg( JSON.stringify(changedKeyArr));
+
+    let nIP        = "";
+    let nPort      = "";
+    let nType      = "";
+    let deBug      = false;
+    let num        = 0;
+    let newAvr     = false ;
+    let errorDect  = false ;
+    let errorIdStr = "";
+
+    changedKeyArr.forEach( (key) => {
+        switch (key) {
+            case "avrip" :
+                if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(newSet.avrip))  {
+
+                    prtDbg(`Correct IP adresss ${nIP}.`);
+                    nIP = newSet.avrip;
+                    newAvr = true;
+                } else {
+
+                    errorDect = true;
+                    errorIdStr = "error.invalidIP";
+                }
+
+                break;
+            case "avrport" :
+                num = parseInt(nPort);
+
+                if ( isNaN(num) || num < 0 || num > 65535 ) {
+                    errorDect = true;
+                    errorIdStr = "error.invalidPort";
+                } else {
+                    nPort = newSet.avrport;
+                    newAvr = true;
+                }
+                break;
+            case "avrtype":
+                nType = newSet.avrtype;
+                newAvr = true;
+                break;
+            case "sDebug":
+                deBug = newSet.sDebug;
+                break;
+        }
+
+    });
+
+    if ( errorDect === false ) {
+
+        if ( newAvr === true ) {
+
+            // get the unchanged parameters
+            //
+            let nIP   = nIP   === "" ? device_data.avrip : nIP ;
+            let nPort = nPort === "" ? device_data.avrport : nPort ;
+            let nType = nType === "" ? device_data.avrtype : nType ;
+
+            if ( avrDevArray[ device_data.avrindex ] !== null ) {
+
+                avrDevArray[ device_data.avrindex ].disconnect();
+
+                avrDevArray[ device_data.avrindex ] = null;
+            }
+
+            prtDbg(`Updated avr: ${device_data.avrname}:${nIP}:${nPort}:${nType}.`);
+
+            avrDevArray[ device_data.avrindex ] = new Avr( nPort,
+                                                           nIP,
+                                                           device_data.avrname ,
+                                                           nType );
+        }
+    }
+
+    if ( deBug === true ) {
+        avrDevArray[ device_data.avrindex ].setConsoleToDebug();
+    } else {
+        avrDevArray[ device_data.avrindex ].setConsoleOff();
+    }
+
+    if ( errorDect === true ) {
+        prtDbg("Settings: returning an error.");
+        callback( new Error(getI18String(errorIdStr)), false );
+    } else {
+        prtDbg("Settings: returning an oke.");
+        callback( null, true );
     }
 };
 
@@ -510,3 +609,5 @@ module.exports.deleted      = deleted;
 module.exports.init         = init;
 module.exports.pair         = pair;
 module.exports.capabilities = capabilities;
+module.exports.settings     = settings;
+module.exports.setSettings  = setSettings;

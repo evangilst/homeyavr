@@ -18,7 +18,9 @@
     "error": {
         "dev_mis_del":    "Device mismatch on deletion.",
         "unknowdev":      "Unknown device in flow methods.",
-        "error.cmdnf":    "Command not found in AVR config file."
+        "error.cmdnf":    "Command not found in AVR config file.",
+        "error.chgSet":   "Change setting failed.",
+        "error.invalidIP": "Invalid IP address."
     },
     "power": {
         "on":             "Power on",
@@ -32,7 +34,7 @@
         "on":             "Mute on",
         "off":            "Mute off"
     },
-    "inputource": {
+    "inputsource": {
         "phono":          "Gramaphone",
         "cd":             "CD player",
         "dvd":            "DVD player",

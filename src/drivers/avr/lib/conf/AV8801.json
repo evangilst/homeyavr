@@ -118,7 +118,7 @@
             "valid": true,
             "command": "SIDVD",
             "text": "dvd",
-            "name": "inputsource..dvd"
+            "name": "inputsource.dvd"
         },
         {
             "prog_id": "i_bd",
@@ -314,7 +314,7 @@
             "valid": true,
             "command": "SIUSB/IPOD",
             "text": "usb Ipod",
-            "name": "inputsource.usr_ipod"
+            "name": "inputsource.usb_ipod"
         },
         {
             "prog_id": "i_usb",
@@ -335,7 +335,7 @@
             "valid": true,
             "command": "SIIRP",
             "text": "Internet radio and recent play",
-            "name": "inputsouce.irp"
+            "name": "inputsource.irp"
         },
         {
             "prog_id": "i_fvp",

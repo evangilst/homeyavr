@@ -50,6 +50,178 @@
                     "id": "add_avr",
                     "template": "add_devices"
                 }
+            ],
+            "settings": [
+                {
+                    "type": "group",
+                    "label": {
+                        "en": "General settings.",
+                        "nl": "Algemene waarden"
+                    },
+                    "children": [
+                        {
+                            "id":   "avrip",
+                            "type": "text",
+                            "label": {
+                                "en": "IP address",
+                                "nl": "IP adres"
+                            },
+                            "value": ""
+                        },
+                        {
+                            "id":   "avrport",
+                            "type": "text",
+                            "label": {
+                                "en": "Port",
+                                "nl": "Poort"
+                            },
+                            "value": "23"
+                        },
+                        {
+                            "id":   "avrtype",
+                            "type": "dropdown",
+                            "label": {
+                                "en": "Type",
+                                "nl": "Type"
+                            },
+                            "values": [
+                                {
+                                    "id": "selnul",
+                                    "label": ""
+                                },
+                                {
+                                    "id": "AV8802",
+                                    "label": "AV8802"
+                                },
+                                {
+                                    "id": "AV8801",
+                                    "label": "AV8801"
+                                },
+                                {
+                                    "id": "AV7702",
+                                    "label": "AV7702"
+                                },
+                                {
+                                    "id": "AV7701",
+                                    "label": "AV7701"
+                                },
+                                {
+                                    "id": "AV7005",
+                                    "label": "AV7005"
+                                },
+                                {
+                                    "id": "SR7010",
+                                    "label": "SR7010"
+                                },
+                                {
+                                    "id": "SR7009",
+                                    "label": "SR7009"
+                                },
+                                {
+                                    "id": "SR7008",
+                                    "label": "SR7008"
+                                },
+                                {
+                                    "id": "SR7007",
+                                    "label": "SR7007"
+                                },
+                                {
+                                    "id": "SR7005",
+                                    "label": "SR7005"
+                                },
+                                {
+                                    "id": "SR6010",
+                                    "label": "SR6010"
+                                },
+                                {
+                                    "id": "SR6009",
+                                    "label": "SR6009"
+                                },
+                                {
+                                    "id": "SR6008",
+                                    "label": "SR6008"
+                                },
+                                {
+                                    "id": "SR6007",
+                                    "label": "SR6007"
+                                },
+                                {
+                                    "id": "SR6006",
+                                    "label": "SR6006"
+                                },
+                                {
+                                    "id": "SR6005",
+                                    "label": "SR6005"
+                                },
+                                {
+                                    "id": "SR5010",
+                                    "label": "SR5010"
+                                },
+                                {
+                                    "id": "SR5009",
+                                    "label": "SR5009"
+                                },
+                                {
+                                    "id": "SR5008",
+                                    "label": "SR5008"
+                                },
+                                {
+                                    "id": "SR5007",
+                                    "label": "SR5007"
+                                },
+                                {
+                                    "id": "SR5006",
+                                    "label": "SR5006"
+                                },
+                                {
+                                    "id": "NR1606",
+                                    "label": "NR1606"
+                                },
+                                {
+                                    "id": "NR1605",
+                                    "label": "NR1605"
+                                },
+                                {
+                                    "id": "NR1604",
+                                    "label": "NR1604"
+                                },
+                                {
+                                    "id": "NR1603",
+                                    "label": "NR1603"
+                                },
+                                {
+                                    "id": "NR1602",
+                                    "label": "NR1602"
+                                },
+                                {
+                                    "id": "NR1506",
+                                    "label": "NR1506"
+                                },
+                                {
+                                    "id": "NR1504",
+                                    "label": "NR1504"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "type": "group",
+                    "label": {
+                        "en": "Debug.",
+                        "nl": "Debug"
+                    },
+                    "children": [
+                        {
+                            "id":    "sDebug",
+                            "type":  "checkbox",
+                            "label": {
+                                "en":  "Debug ",
+                                "nl":  "Debug"
+                            }
+                        }
+                    ]
+                }
             ]
         }
     ],

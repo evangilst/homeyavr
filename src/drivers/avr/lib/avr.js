@@ -31,7 +31,7 @@ class Avr {
         this.test   = 0;
 
         this.avrConfigFile = `./conf/${this.type}.json`;
-        this.consoleOut = 1;    // 0 = no output
+        this.consoleOut = 0;    // 0 = no output
                                 // 1 = info
                                 // 2 = debug (more info)
 
@@ -47,6 +47,8 @@ class Avr {
         this.deleteIndex   = 0;
         this.MAXINDEX      = 64 ;
         this.isLoopRunning = false ;
+        this.hasToStop     = false ;
+        this.socket        = null;
 
         // initialize send Array.
         for ( let I = 0 ; I <= this.MAXINDEX; I++ ) {
@@ -69,17 +71,17 @@ class Avr {
         // Note needs to be readFileSync otherwise the command will be looked up
         //      before the conf is loaded with the  result the program to throw errors.
         //      It will only occur during creation (new....)
-        this._d(1,path.join( __dirname, this.avrConfigFile) );
+        this._d(path.join( __dirname, this.avrConfigFile) );
         let jsondata = fs.readFileSync(path.join( __dirname, this.avrConfigFile)).toString();
 
         try {
             this.conf = JSON.parse( jsondata );
             this.hasConfigloaded = true;
-            this._d(1,"config loaded !.");
+            this._d("config loaded !.");
         } catch (err ) {
             this.conf = null;
             this.hasConfigloaded = false;
-            this._d(1,`Error parsing ${this.avrConfigFile} : ${err}.`);
+            this._d(`Error parsing ${this.avrConfigFile} : ${err}.`);
         }
 
         // Fill the input selection array with the entries supported by the AVR type
@@ -92,10 +94,6 @@ class Avr {
         // Create the socket for the communication with the AVR.
         // Set allowHalfOpen so the connection will stay open after the send buffers
         // are empty.
-
-        this.socket = new net.Socket({
-            allowHalfOpen: true
-        });
 
         // Connect to the AVR and set the listeners.
         this._openConnection();
@@ -114,36 +112,48 @@ class Avr {
      *  @private
      */
     _openConnection() {
-        this._d(1,"Opening AVR network connection...");
+        this._d(`hasToStop is ${this.hasToStop}.`);
 
-        this.socket.connect( this.port, this.host )
-            .on( "connect" , () => {
-                this.hasNetworkConnection = true;
-                this._d(1,"Network connection open.");
-                // As this is a new connection get the current status of the AVR.
-                this._getAVRStatusUpdate();
-            })
-            .on( "error" , (err) => {
-                this._d(1,`Error: ${err}.`);
-                this.hasNetworkConnection = false;
-                this.socket.end();
-                this._retryToOpenConnection();
-            })
-            .on("data" , (data) => {
-                this._processData(data);
-            })
-            .on( "end" , () => {
-                this._d(1,"AVR closed the connection.");
-                this.hasNetworkConnection = false;
-                this.socket.end();
-                this._retryToOpenConnection();
-            })
-            .on( "timeout" , () => {
-                this._d(1,"Connection timed out.");
-                this.hasNetworkConnection = false;
-                this.socket.end();
-                this._retryToOpenConnection();
+        if ( this.hasToStop === false ) {
+
+            this._d(`Opening AVR network connection to ${this.host}:${this.port}.`);
+
+            this.socket = new net.Socket({
+                allowHalfOpen: true
             });
+
+            this.socket.connect( this.port, this.host )
+                .on( "connect" , () => {
+                    this.hasNetworkConnection = true;
+                    this._d("Network connection open.");
+                    // As this is a new connection get the current status of the AVR.
+                    this._getAVRStatusUpdate();
+                })
+                .on( "error" , (err) => {
+                    this._d(`Error: ${err}.`);
+                    this.hasNetworkConnection = false;
+                    this.socket.end();
+                    this.socket = null;
+                    this._retryToOpenConnection();
+                })
+                .on("data" , (data) => {
+                    this._processData(data);
+                })
+                .on( "end" , () => {
+                    this._d("AVR closed the connection.");
+                    this.hasNetworkConnection = false;
+                    this.socket.end();
+                    this.socket = null;
+                    this._retryToOpenConnection();
+                })
+                .on( "timeout" , () => {
+                    this._d("Connection timed out.");
+                    this.hasNetworkConnection = false;
+                    this.socket.end();
+                    this.socket = null;
+                    this._retryToOpenConnection();
+                });
+        }
     }
 
     /**
@@ -154,9 +164,14 @@ class Avr {
      *  @private
      */
     _retryToOpenConnection() {
-        setTimeout( () => {
-            this._openConnection();
-        }, 10000);
+
+        this._d(`hasToStop is ${this.hasToStop}.`);
+
+        if ( this.hasToStop === false ) {
+            setTimeout( () => {
+                this._openConnection();
+            }, 10000);
+        }
     }
 
     /**
@@ -183,8 +198,6 @@ class Avr {
                 }
             }
         }
-
-        this._d(2,this.selAr);
     }
 
     /**
@@ -211,8 +224,6 @@ class Avr {
                 }
             }
         }
-
-        this._d( 2, this.surroundAr );
     }
 
     /**
@@ -250,8 +261,6 @@ class Avr {
 
             this.ecoAr.push(item);
         }
-
-        this._d(2, this.ecoAr);
     }
 
     /**
@@ -264,7 +273,7 @@ class Avr {
     _processData(data) {
         let xData = String(data).replace("\r", "");
 
-        this._d(1,`Received : ${xData}.`);
+        this._d(`Received : ${xData}.`);
 
         switch( xData.substr(0,2) ) {
 
@@ -336,7 +345,7 @@ class Avr {
      */
     _sendDataToAvr( cmd ) {
 
-        this._d(1,`Sending : ${cmd}.`);
+        this._d(`Sending : ${cmd}.`);
         this.socket.write(cmd + "\r");
 
         setTimeout( () => {
@@ -356,25 +365,25 @@ class Avr {
      */
     _dataToAvr() {
 
-        this._d(2, `${this.insertIndex} / ${this.deleteIndex}.`);
+        this._d(`${this.insertIndex} / ${this.deleteIndex}.`);
 
         if ( this.insertIndex === this.deleteIndex ) {
 
             // end buffer is 'empty' => nothing to do then wait till's flled again.
             this.isLoopRunning = false ;
-            this._d(2,"Send loop temp stopped - empty send buffer.");
+            this._d("Send loop temp stopped - empty send buffer.");
         } else {
             if ( this.sendAr[ this.deleteIndex ] === "" ) {
 
                 // If the command to be send if empty consider it as
                 // empty buffer and exit the data send loop.
                 this.isLoopRunning = false ;
-                this._d(2,"Sendbuffer entry empty (stopping send loop)!.");
+                this._d("Sendbuffer entry empty (stopping send loop)!.");
             } else {
                 let data = this.sendAr[ this.deleteIndex ];
                 this.sendAr[ this.deleteIndex ] = ""; // clear used buffer.
                 this.deleteIndex++;
-                this._d(2,`Setting deleteIndex to ${this.deleteIndex}.`);
+                this._d(`Setting deleteIndex to ${this.deleteIndex}.`);
 
                 if ( this.deleteIndex >= this.MAXINDEX ) {
                     this.deleteIndex = 0;
@@ -403,7 +412,7 @@ class Avr {
 
         if ( this.nextInsertIndex === this.deleteIndex ) {
             // data buffer overrun !
-            this._d(1,"Send buffer overrun !.");
+            this._d("Send buffer overrun !.");
 
         } else {
 
@@ -415,14 +424,14 @@ class Avr {
                 this.insertIndex = 0;
             }
 
-            this._d(2,`Next insert index = ${this.insertIndex}`);
+            this._d(`Next insert index = ${this.insertIndex}`);
 
             // Start a new 'loop' only if the last loop has finished.
             // If the loop is running, the new data will be send
             // by the 'current loop'
 
             if ( this.isLoopRunning === false ) {
-                this._d(2,"Starting send loop.....");
+                this._d("Starting send loop.....");
                 this.server.emit("send_entry");
             }
         }
@@ -455,17 +464,10 @@ class Avr {
      *********************************************************************/
 
     /**
-     * Enables the info message to console.log (debuggging only).
-     */
-    setConsoletoInfo() {
-        this.consoleOut = 1;
-    }
-
-    /**
      * Enables the debug message to console.log (debuggging only).
      */
     setConsoleToDebug() {
-        this.consoleOut = 2;
+        this.consoleOut = 1;
     }
 
     /**
@@ -496,17 +498,11 @@ class Avr {
      * @param      {number}  num     The type of message (1=info, 2=debug)
      * @param      {string}  str     The message to console.log
      */
-    _d(num , str) {
+    _d(str) {
         if ( this.consoleOut > 0 ) {
-            //let date = new Date();
-            //let dateStr = date.toISOString();
-            if ( num === 1 && this.consoleOut === 1 ) {
-                console.log(`${str}.`);
-                //console.log(`${dateStr}-(INFO)-${str}.`);
-            } else if ( num === 2 && this.consoleOut === 2 ) {
-                console.log(`${str}.`);
-                //console.log(`${dateStr}-(DBG)-${str}.`);
-            }
+            let date = new Date();
+            let dateStr = date.toISOString();
+            console.log(`${dateStr}-${str}.`);
         }
     }
 
@@ -567,9 +563,17 @@ class Avr {
      * Don't start a new connection after receiving the disconnect command.
      */
     disconnect(){
-        this._d(1,"Disconnecting on request.");
-        this.hasNetworkConnection = false;
-        this.socket.end();
+
+        this._d("Disconnecting on request.");
+
+        this.hasToStop = true;
+
+        this._d("hasToStop is true");
+
+        if ( this.socket !== null ) {
+            this.socket.end();
+            this.hasNetworkConnection = false;
+        }
     }
 
     /*********************************************************************
@@ -1431,7 +1435,7 @@ class Avr {
         if ( command !== "ECO_UN_SUPPORTED" ) {
             this._sendData(command);
         } else {
-            this._d(1, "Eco is unsupported for the device.");
+            this._d("Eco is unsupported for the device.");
         }
     }
 

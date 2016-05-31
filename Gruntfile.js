@@ -7,6 +7,7 @@ module.exports = function( grunt ) {
     grunt.initConfig({
 
         defs: {
+            localDir:      ".",
             srcDir:        "./src",
             srcSimDir:     "<%= defs.srcDir %>/test",
 
@@ -55,6 +56,12 @@ module.exports = function( grunt ) {
                         expand: true,
                         cwd:    "<%= defs.srcDir %>",
                         src:    "drivers/avr/lib/conf/**/*.json",
+                        dest:   "<%= defs.destAppDir %>"
+                    },
+                    {
+                        expand: true,
+                        cwd:    "<%= defs.localDir %>",
+                        src:    "README.md",
                         dest:   "<%= defs.destAppDir %>"
                     },
                     {
