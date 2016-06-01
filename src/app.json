@@ -30,8 +30,8 @@
                 "nl": "Avr versterker"
             },
             "images": {
-                "large": "drivers/avr/assets/images/large.jpg",
-                "small": "drivers/avr/assets/images/small.jpg"
+                "large": "drivers/avr/assets/images/large.svg",
+                "small": "drivers/avr/assets/images/small.svg"
             },
             "class": "other",
             "capabilities": ["onoff"],

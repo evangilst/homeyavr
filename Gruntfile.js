@@ -43,7 +43,13 @@ module.exports = function( grunt ) {
                     {
                         expand: true,
                         cwd:    "<%= defs.srcDir %>",
-                        src:    "drivers/avr/assets/**/*",
+                        src:    "drivers/avr/assets/*.svg",
+                        dest:   "<%= defs.destAppDir %>"
+                    },
+                    {
+                        expand: true,
+                        cwd:    "<%= defs.srcDir %>",
+                        src:    "drivers/avr/assets/images/*.svg",
                         dest:   "<%= defs.destAppDir %>"
                     },
                     {
@@ -86,7 +92,7 @@ module.exports = function( grunt ) {
 
         babel: {
             options: {
-                sourceMap: true
+                sourceMap: false
             },
             homey: {
                 files: {

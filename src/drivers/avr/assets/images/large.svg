@@ -16,8 +16,9 @@
       <stop offset="75%" style="stop-color:#69B0F9" />
     </radialGradient>
     <g id="kast" >
-      <rect
-        x="30" y="157" width="440" height="170.5"
+      <rect x="0" y="0" width="500" height="500"
+          style="fill:white" />
+      <rect x="30" y="157" width="440" height="170.5"
           style="fill:#69B0F9; stroke:black" />
       <rect x="118" y="157" width="18" height="170.5"
         style="fill:url(#riggel); stroke:black" />
