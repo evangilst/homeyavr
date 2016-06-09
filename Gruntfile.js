@@ -49,7 +49,7 @@ module.exports = function( grunt ) {
                     {
                         expand: true,
                         cwd:    "<%= defs.srcDir %>",
-                        src:    "drivers/avr/assets/images/*.svg",
+                        src:    "drivers/avr/assets/images/*.jpg",
                         dest:   "<%= defs.destAppDir %>"
                     },
                     {
@@ -122,7 +122,10 @@ module.exports = function( grunt ) {
                 src: [
                     "<%= defs.srcDir %>/app.js",
                     "<%= defs.srcDir %>/drivers/avr/driver.js",
-                    "<%= defs.srcDir %>/drivers/avr/lib/avr.js"
+                    "<%= defs.srcDir %>/drivers/avr/lib/avr.js",
+                    "<%= defs.srcDir %>/test/avrsim.js",
+                    "<%= defs.srcDir %>/test/avrtest.js",
+                    "<%= defs.srcDir %>/gen/gen_jsons.js"
                 ],
                 options: {
                     destination: "<%= defs.destDocDir %>"

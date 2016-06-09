@@ -1,9 +1,24 @@
+/**
+ * AVRSIM
+ *     a basic AVR simulator to test the fucntionality of the homeyavr program
+ *     without a 'real' AVR.
+ */
 "use strict";
+
+let IPPORT = 2222;
 
 let net = require("net");
 
+/**
+ * class AvrSim
+ */
 class AvrSim {
 
+    /**
+     * Create a new instance of AvrSim.
+     *
+     * @param      {number}  sPort   The internet port to be use for listening.
+     */
     constructor( sPort ) {
 
         this.port   = sPort;
@@ -18,6 +33,9 @@ class AvrSim {
         this.ecoMode       = "ECOON";
     }
 
+    /**
+     * Start up the specific listeners.
+     */
     connect() {
         net.createServer ( (socket) => {
             this.socket = socket;
@@ -37,10 +55,18 @@ class AvrSim {
         }).listen( this.port );
     }
 
+    /**
+     * Stop listening.
+     */
     close() {
         this.socket.destroy();
     }
 
+    /**
+     * Process the received data and return the appropriated response.
+     *
+     * @param      {buffer}  data    The received data
+     */
     processData( data ) {
         let xData = String(data);
 
@@ -120,6 +146,6 @@ class AvrSim {
     }
 }
 
-let avrSim = new AvrSim( 2222 );
+let avrSim = new AvrSim( IPPORT );
 
 avrSim.connect();

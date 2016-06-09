@@ -1,8 +1,17 @@
+/**
+ * AVRTEST
+ *      a basic node program to test the functionality of the 'avr.js' commands
+ *      for a Marantz AVR remote commands over a telnet connetion.
+ */
+
 "use strict";
+
+let IPADDRESS = "192.168.1.35";
+let IPPORT    = 2222;
 
 let Avr = require("./avr");
 
-let mAvr = new Avr( 2222, "192.168.1.35", "testavr", "SR5010");
+let mAvr = new Avr( IPPORT, IPADDRESS, "testavr", "SR5010");
 
 console.log("IP address : ", mAvr.getHostname());
 console.log("Port       : ", mAvr.getPort());
@@ -11,6 +20,10 @@ console.log("Name       : ", mAvr.getName());
 
 mAvr.setTest(); // enable testing (ignoring avr type restrictions).
 
+/**
+ * Check all power commands.
+ *
+ */
 let checkPowerCommands = () => {
 
     setTimeout( () => {              mAvr.powerOn();             },   10);
@@ -21,6 +34,10 @@ let checkPowerCommands = () => {
     setTimeout( () => { console.log( mAvr.getPowerOnOffState()); }, 2700);
 };
 
+/**
+ * Check all main zone power commands.
+ *
+ */
 let checkMainZonePowerCommands = () => {
 
     setTimeout( () => {              mAvr.mainZonePowerOn();             },   10);
@@ -31,6 +48,10 @@ let checkMainZonePowerCommands = () => {
     setTimeout( () => { console.log( mAvr.getMainZonePowerOnOffState()); }, 2700);
 };
 
+/**
+ * Check all mute commands.
+ *
+ */
 let checkMuteCommands = () => {
 
     setTimeout( () => {              mAvr.muteOn();             },   10);
@@ -41,6 +62,10 @@ let checkMuteCommands = () => {
     setTimeout( () => { console.log( mAvr.getMuteOnOffState()); }, 1800);
 };
 
+/**
+ * Check all vlume commands.
+ *
+ */
 let checkVolumeCommands = () => {
 
     setTimeout( () => {              mAvr.volumeUp();        },   10);
@@ -51,6 +76,10 @@ let checkVolumeCommands = () => {
     setTimeout( () => { console.log( mAvr.getVolume());      }, 2000);
 };
 
+/**
+ * Check all input source commands.
+ *
+ */
 let checkInputSourceCommands = () => {
 
     setTimeout( () => {              mAvr.selectInputSourcePhono();        },   10);
@@ -111,11 +140,15 @@ let checkInputSourceCommands = () => {
     setTimeout( () => { console.log( mAvr.getInputSelection());            },11200);
     setTimeout( () => {              mAvr.selectInputSourceUsbIpod();      },11400);
     setTimeout( () => { console.log( mAvr.getInputSelection());            },11600);
-    setTimeout( () => {              mAvr.selectCorrectInputSource("SICD");},11800);
+    setTimeout( () => {              mAvr.sendInputSourceCommand("SICD");  },11800);
     setTimeout( () => { console.log( mAvr.getInputSelection());            },12000);
     setTimeout( () => { console.log( mAvr.getValidInputSelection());       },12200);
 };
 
+/**
+ * Check all surround mode commands.
+ *
+ */
 let checkSurroundCommands = () => {
     setTimeout( () => {              mAvr.setSurroundModeToMovies();         },    1);
     setTimeout( () => { console.log( mAvr.getSurroundMode());                },  200);
@@ -149,23 +182,32 @@ let checkSurroundCommands = () => {
     setTimeout( () => { console.log( mAvr.getSurroundMode());                }, 5800);
     setTimeout( () => {              mAvr.setSurroundModeToRight();          }, 6000);
     setTimeout( () => { console.log( mAvr.getSurroundMode());                }, 6200);
-    setTimeout( () => {              mAvr.selectCorrectSurround("MSAUTO");   }, 6400);
+    setTimeout( () => {              mAvr.sendSurroundCommand("MSAUTO");     }, 6400);
     setTimeout( () => { console.log( mAvr.getSurroundMode());                }, 6600);
     setTimeout( () => { console.log( mAvr.getValidSurround());               }, 6800);
 };
 
+/**
+ * Check all eco commands.
+ *
+ */
 let checkEcoCommands = () => {
-    setTimeout( () => { console.log( mAvr.hasEco());              },    1);
-    setTimeout( () => {              mAvr.ecoOn();                },  200);
-    setTimeout( () => { console.log( mAvr.getEcoMode());          },  400);
-    setTimeout( () => {              mAvr.ecoOff();               },  600);
-    setTimeout( () => { console.log( mAvr.getEcoMode());          },  800);
-    setTimeout( () => {              mAvr.ecoAuto();              }, 1000);
-    setTimeout( () => { console.log( mAvr.getEcoMode());          }, 1200);
-    setTimeout( () => {              mAvr.selectCorrectEco("ECO_UN_SUPPORTED"); }, 1400);
-    setTimeout( () => { console.log( mAvr.getValidEcoCommands()); }, 1600);
+    setTimeout( () => { console.log( mAvr.hasEco());              },                1);
+    setTimeout( () => {              mAvr.ecoOn();                },              200);
+    setTimeout( () => { console.log( mAvr.getEcoMode());          },              400);
+    setTimeout( () => {              mAvr.ecoOff();               },              600);
+    setTimeout( () => { console.log( mAvr.getEcoMode());          },              800);
+    setTimeout( () => {              mAvr.ecoAuto();              },             1000);
+    setTimeout( () => { console.log( mAvr.getEcoMode());          },             1200);
+    setTimeout( () => {              mAvr.sendEcoCommand("ECO_UN_SUPPORTED"); }, 1400);
+    setTimeout( () => { console.log( mAvr.getValidEcoCommands()); },             1600);
 };
 
+/**
+ * Check all avr commands
+ * Calls checks for power, mani zone power, mute, volume, inputsource, surround mode and eco.
+ *
+ */
 let checkAll = () => {
 
     setTimeout( () => { checkPowerCommands();             },    10);

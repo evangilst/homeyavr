@@ -1,18 +1,49 @@
-## Marantz / Denon support to your Homey.
+# Homeyavr
 
-Currently working:
-- power commands (on,off,standby)
-- mute commands (on,off)
-- source input selection(Phone,CD.DVD,Bluary,etc (is depending on the AVR type))
-- volume
+Application to connect Homey to a Marantz AVR.
+Version: 0.9.0
 
-Flow support for:
-- power commands
-- mute commands
-- source input selections.
-- volume
+Currently working and supported in flows:
 
-Marantz AVR supported (i.e commands are known and incorporated):
+* power commands for AVR and main zone.
+	- On
+	- Off
+* mute commands
+	- On
+	- Off
+* source input selection
+	- Select input source selections depending on the AVR type.
+	- Selection names in the 'locale/<lang>.json' files.
+* volume
+	 - Up
+	 - Down
+	 - Set (values between 0 - 80 )
+* surround mode selection
+	- Surround mode selections depending on the AVR type
+	- Selection names in the 'locale/<lang>.json' files.
+* ECO depending on the AVR type
+	- On
+	- Off
+	- Auto
+
+App updates the internal status of the AVR constantly, even if the command is given
+by a different application or by remote control, as long the AVR is transmitting
+the commands.
+
+Not tested:
+* Save settings.
+  Due to an bug in version v0.8.32 and confirmed to be fixed in v0.8.35 (Issue #600)
+  Currently the save setting popup will not be removed
+  Settings are not saved although the application is using the new paramater.
+  However after a restart/reboot the old paramaters will be used.
+
+To do:
+* Use capabilities in the web interface as example light.
+  Currently there are no capabilities defined (yet??) for the 'other' class.
+  Changing the class to 'light' will give the on/off capability in the web interface.
+
+
+Marantz AVR supported :
 av8802, av8801, av7702, av7701, av7005,
 sr7010, sr7009, sr7008, sr7007, sr7005,
 sr6010, sr6009, sr6008, sr6007, sr6006, sr6005,

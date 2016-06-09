@@ -4,7 +4,7 @@
         "en": "homeyavr",
         "nl": "homeyavr"
     },
-    "version": "0.8",
+    "version": "0.9.0",
     "compatibility": "0.x || 1.x",
     "author": {
         "name": "Evert van Gilst",
@@ -30,8 +30,8 @@
                 "nl": "Avr versterker"
             },
             "images": {
-                "large": "drivers/avr/assets/images/large.svg",
-                "small": "drivers/avr/assets/images/small.svg"
+                "large": "drivers/avr/assets/images/large.jpg",
+                "small": "drivers/avr/assets/images/small.jpg"
             },
             "class": "other",
             "capabilities": ["onoff"],

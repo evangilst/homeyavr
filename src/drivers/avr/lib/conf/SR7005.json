@@ -24,21 +24,21 @@
     ],
     "main_zone_power": [
         {
-            "prog_id": "power_on",
+            "prog_id": "mzpower_on",
             "valid": true,
             "command": "ZMON",
             "text": "main zone power on",
             "name": "mzpower.on"
         },
         {
-            "prog_id": "power_off",
+            "prog_id": "mzpower_off",
             "valid": true,
             "command": "ZMOFF",
             "text": "main zone power off",
             "name": "mzpower.off"
         },
         {
-            "prog_id": "power_request",
+            "prog_id": "mzpower_request",
             "valid": true,
             "command": "ZM?",
             "text": "",

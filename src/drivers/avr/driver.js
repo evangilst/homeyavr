@@ -6,6 +6,11 @@ let avrDevArray  = [];
 let newDevInfo   = {};
 let my_Debug_Avr = 1 ;
 
+/**
+ * Prints using homey.log if debug is switched on.
+ *
+ * @param      {string}  str     The message string
+ */
 let prtDbg = (str) => {
     if ( my_Debug_Avr === 1 ) {
         let date = new Date();
@@ -29,7 +34,7 @@ let getI18String = (str) => {
  * Deleting a AVR device
  *
  * @method     deleted
- * @param      <type>    device    Info of the to-be-delete device
+ * @param      Object    device    Info of the to-be-delete device
  * @param      Function  callback  Inform Homey of the result.
  * @return     'callback'
  */
@@ -242,6 +247,16 @@ let setSettings = (device_data) => {
     prtDbg(device_data);
 };
 
+/**
+ * Change he settings of the selected AVR.
+ * Uses the callback to signal Homey of the result.
+ *
+ * @param      {Object}    device_data    The device data
+ * @param      {Object}    newSet         The new set
+ * @param      {Object}    oldSet         The old set
+ * @param      {Array}     changedKeyArr  The changed key arr
+ * @param      {Function}  callback       The callback
+ */
 let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
 
     prtDbg( JSON.stringify(device_data));
@@ -366,7 +381,7 @@ Homey.manager("flow")
             callback(null, true);
         } else {
             prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowdev")), false );
+            callback(new Error(getI18String("error.unknowndev")), false );
         }
     })
 
@@ -380,7 +395,7 @@ Homey.manager("flow")
             callback(null, true);
         } else {
             prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowdev")), false );
+            callback(new Error(getI18String("error.unknowndev")), false );
         }
     });
 
@@ -400,7 +415,7 @@ Homey.manager("flow")
             callback(null, true);
         } else {
             prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowdev")), false );
+            callback(new Error(getI18String("error.unknowndev")), false );
         }
     })
 
@@ -414,7 +429,7 @@ Homey.manager("flow")
             callback(null, true);
         } else {
             prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowdev")), false );
+            callback(new Error(getI18String("error.unknowndev")), false );
         }
     });
 
@@ -433,7 +448,7 @@ Homey.manager("flow")
             callback(null, true);
         } else {
             prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowdev")), false );
+            callback(new Error(getI18String("error.unknowndev")), false );
         }
     })
 
@@ -447,7 +462,7 @@ Homey.manager("flow")
             callback(null, true);
         } else {
             prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowdev")), false );
+            callback(new Error(getI18String("error.unknowndev")), false );
         }
     });
 
@@ -501,7 +516,7 @@ Homey.manager("flow")
             callback(null, true);
         } else {
             prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowdev")), false );
+            callback(new Error(getI18String("error.unknowndev")), false );
         }
     })
 
@@ -515,7 +530,7 @@ Homey.manager("flow")
             callback(null, true);
         } else {
             prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowdev")), false );
+            callback(new Error(getI18String("error.unknowndev")), false );
         }
     })
     .on("action.setvolume" , (callback,args) => {
@@ -529,7 +544,7 @@ Homey.manager("flow")
 
         } else {
             prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowdev")), false );
+            callback(new Error(getI18String("error.unknowndev")), false );
         }
     }) ;
 

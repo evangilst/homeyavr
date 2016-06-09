@@ -438,7 +438,7 @@ class Avr {
     }
 
     /**
-     * Called once after the AVR is created to get the current status of:
+     * Called once after the AVR is created/started to get the current status of:
      *     1) power
      *     2) main zone power
      *     3) mute
@@ -697,21 +697,21 @@ class Avr {
      * Switch on the main zone power of the AVR
      */
     mainZonePowerOn() {
-        this._mainZonePowerCommand( "power_on" ) ;
+        this._mainZonePowerCommand( "mzpower_on" ) ;
     }
 
     /**
      * Switch of the main zone power of the AVR
      */
     mainZonePowerOff() {
-        this._mainZonePowerCommand( "power_off" ) ;
+        this._mainZonePowerCommand( "mzpower_off" ) ;
     }
 
     /**
      * Gets the avr main zone power status.
      */
     getAVRMainZonePowerStatus() {
-        this._mainZonePowerCommand( "power_request" ) ;
+        this._mainZonePowerCommand( "mzpower_request" ) ;
     }
 
     /**
@@ -743,7 +743,7 @@ class Avr {
     getMainZonePowerOnOffState() {
 
         for ( let I = 0 ; I < this.conf.main_zone_power.length; I++ ) {
-            if ( this.conf.main_zone_power[I].prog_id === "power_on") {
+            if ( this.conf.main_zone_power[I].prog_id === "mzpower_on") {
                 if ( this.conf.main_zone_power[I].command === this.powerMainZoneStatus) {
                     return true;
                 } else {
@@ -1131,7 +1131,7 @@ class Avr {
       * Finds the command of the requested volume action and fills the send buffer
       *
       * @param      {string}  cmd     The command
-      * @param      {string}  level   The level to set the volume (00-80)
+      * @param      {string}  level   The level to set the volume.
       * @private
       */
     _volumeCommand( cmd , level ) {

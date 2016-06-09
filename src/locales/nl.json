@@ -1,47 +1,47 @@
 {
     "pair": {
         "config": {
-            "title":      "Marantz AVR configuration setup.",
-            "ipaddress":  "IP address :",
+            "title":      "Marantz AVR configuratie setup.",
+            "ipaddress":  "IP adres :",
             "type":       "AVR type :",
-            "name":       "Name of the avr",
-            "saveit":     "Save configuration",
-            "message":    "Test version",
-            "emptyType":  "No AVR tyoe selected !.",
-            "emptyName":  "No name given !.",
-            "emptyIP":    "No IP address given !.",
-            "invalidIP":  "Invalid IPV4 IP address !.",
-            "required":   "Invalid parameters detected !."
+            "name":       "Naam van de avr",
+            "saveit":     "Sla configuration op",
+            "message":    "Test versie",
+            "emptyType":  "Geen AVR type geselecteerd !.",
+            "emptyName":  "Geen naam gegeven !.",
+            "emptyIP":    "Geen IP adres gegeven !.",
+            "invalidIP":  "Ongeldig IP adres!.",
+            "required":   "Ongeldige parameters gedetecteerd !."
         }
     },
     "error": {
-        "dev_mis_del":    "Device mismatch on deletion.",
-        "unknowndev":     "Unknown device in flow methods.",
-        "cmdnf":          "Command not found in AVR config file.",
-        "invalidIP":      "Invalid IP address."
+        "dev_mis_del":    "Device niet gevonden bij verwijderen.",
+        "unknowndev":     "Onbekend device in de flow methoden.",
+        "cmdnf":          "Command niet gevonden in de AVR config file.",
+        "invalidIP": "Ongeldig IP adres."
     },
     "power": {
-        "on":             "Power on",
-        "off":            "Power off/standby"
+        "on":             "Power aan",
+        "off":            "Power uit/standby"
     },
     "mzpower": {
-        "on":             "Main zone power on",
-        "off":            "Main zone power off/standby"
+        "on":             "Main zone power aan",
+        "off":            "Main zone power uit"
     },
     "mute": {
-        "on":             "Mute on",
-        "off":            "Mute off"
+        "on":             "Mute aan",
+        "off":            "Mute uit"
     },
     "inputsource": {
-        "phono":          "Gramaphone",
-        "cd":             "CD player",
-        "dvd":            "DVD player",
-        "bd":             "Bluray player",
+        "phono":          "Gramafoon",
+        "cd":             "CD speler",
+        "dvd":            "DVD speler",
+        "bd":             "Bluray speler",
         "tv":             "TV",
-        "sat_cbl":        "Satelite/Cable",
-        "sat":            "Satelite",
-        "mplay":          "Media player",
-        "vcr":            "1_VCR player" ,
+        "sat_cbl":        "Sateliet/Kabel",
+        "sat":            "Sateliet",
+        "mplay":          "Media speler",
+        "vcr":            "1_VCR speler" ,
         "game":           "Game console",
         "v_aux":          "Video/aux",
         "tuner":          "Tuner",
@@ -50,8 +50,8 @@
         "flickr":         "Flickr",
         "iradio":         "Internet radio",
         "server":         "Server",
-        "favorites":      "favorites",
-        "cdr":            "CDR player",
+        "favorites":      "favorieten",
+        "cdr":            "CDR speler",
         "aux1":           "AUX1",
         "aux2":           "AUX2",
         "aux3":           "AUX3",
@@ -66,8 +66,8 @@
         "usb_ipod":       "Usb-IPOD",
         "usb":            "USB",
         "ipd":            "IPOD",
-        "irp":            "Internet Radion and recent play",
-        "fvp":            "Online music and play favorite",
+        "irp":            "Internet Radion ",
+        "fvp":            "Online music en speel favoriet af",
         "otp":            "One Touch Play"
     },
     "surround": {
@@ -82,17 +82,17 @@
         "standard":       "Surround standard",
         "dolby":          "Surround dolby digital",
         "dts":            "Surround DTS",
-        "mchstereo":      "Multi chanel stereo surround",
+        "mchstereo":      "Multi channel stereo surround",
         "matrix":         "Surround matrix",
         "virtual":        "Surround virtual",
         "left":           "Surround left",
         "right":          "Surround right"
     },
     "eco": {
-        "on":             "Eco mode on",
-        "off":            "Eco mode off",
-        "auto":           "Automatic eco mode",
-        "ns":             "Not supported"
+        "on":             "Eco mode aan",
+        "off":            "Eco mode uit",
+        "auto":           "Automatische eco mode",
+        "ns":             "Niet aanwezig."
     }
 
 }

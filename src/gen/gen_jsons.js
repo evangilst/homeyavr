@@ -1,5 +1,12 @@
 "use strict";
 
+/**
+ * GEN-JSONS
+ *
+ *     program to generate the AVR type json files from 1 single source (avrcodes.xlsx).
+ *     Generation result will be in .../test/conf and need to be copied to the correct place.
+ */
+
 var XLSX = require("excel");
 var fs   = require("fs");
 
