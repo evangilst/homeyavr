@@ -11,14 +11,14 @@
 	* **grunt buildtest**    - builds the test environment
 	* **grunt builddocs**    - Builds the documentation (jsdoc).
 5. **Build directory**:
-	* ./dist/docs**                  - the documentation output.
+	* **./dist/docs**                - the documentation output.
 	* **./dist/test**                - The test enviroment.
 	* **./dist/nl.evgilst.homeyavr** - The homey application directory.
 
 ## Testing.
 1. Goto **src/test** directory
 2. **Edit** avrtest.js
-3. **Change** IP address (IPADDRESS) to the IP address of the server wich will run avrsim.
+3. **Change** IP address (IPADDRESS) to the IP address of the server which will run avrsim.
 4. **Generated** the test environment as describe above.
 5. **cd ./dist/test** for 2 terminals
 6. on terminal-1: **node aversim**
