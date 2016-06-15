@@ -48,10 +48,7 @@ XLSX("./avrcodes.xlsx", function(err, data) {
             x.valid   = valid;
             x.command = workRow[1];
             x.text    = workRow[4];
-
-            if ( workRow[3] !== "") {
-                x.name = workRow[3];
-            }
+            x.i18n    = workRow[3] || "";
 
             if ( group === "power" ) {
                 power.push(x);

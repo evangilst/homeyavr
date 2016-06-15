@@ -1,23 +1,36 @@
 "use strict";
 
+let eventEmitter = require("events");
 let Avr = require("./lib/avr");
 
-let avrDevArray  = [];
-let newDevInfo   = {};
-let my_Debug_Avr = 1 ;
+const MAX_AVRS   = 8    ;  // Max allowed AVR configurations
+let avrSvr       = null ;  // event channel
+let myDebugMode  = true;  // Write debug messages or not
+let avrDevArray  = [];     // AVR device array
+let newDevInfo   = {};     // New device
 
 /**
- * Prints using homey.log if debug is switched on.
+ * Prints debug messages using homey.log if debug is switched on.
  *
  * @param      {string}  str     The message string
  */
 let prtDbg = (str) => {
-    if ( my_Debug_Avr === 1 ) {
+    if ( myDebugMode === true ) {
         let date = new Date();
         let dateStr = date.toISOString();
-        //console.log(str);
         Homey.log(`${dateStr}-${str}`);
     }
+};
+
+/**
+ * Prints message unconditionally using home.log
+ *
+ * @param      {string}  str     The mesage string
+ */
+let prtMsg = (str) => {
+    let date = new Date();
+    let dateStr = date.toISOString();
+    Homey.log(`${dateStr}-${str}`);
 };
 
 /**
@@ -31,79 +44,242 @@ let getI18String = (str) => {
 };
 
 /**
- * Deleting a AVR device
+ * Switch debug mode on
+ */
+let switchOnDebugMode = () => {
+    myDebugMode = true ;
+    prtDbg("Debug switched on");
+};
+
+/**
+ * Swicth debug mode off.
+ */
+let switchOffDebugMode = () => {
+    prtDbg("Debug switched off");
+    myDebugMode = false ;
+};
+
+/**
+ * Set up event listeners.
+ */
+let setUpListeners = () => {
+
+    avrSvr
+        // initiation and load avr type json files events
+        .on("init_success", (num, type) => {
+            prtDbg(`AVR slot ${num} has loaded the ${type}.json file.`);
+            // the AVR type json files has been loaded.
+            // enable certain functions/methods
+            avrDevArray[ num ].confLoaded = true;
+        })
+        .on("init_failed", (num, name, type) => {
+            prtMsg(`Error: AVR ${name} (slot ${num}) has fail to load the ${type}.json file.`);
+            // Cannot load / parse the AVR type json file
+            // Block certain functions.methods
+            // TODO:
+            //    Need to set the device "unavailable" for HOMEY. (setUnavailable??)
+            avrDevArray[ num ].confLoaded = false;
+        })
+
+        // network events.
+        .on("net_connected", (num,name) => {
+            prtDbg(`Avr ${name} (slot ${num}) is connected.`);
+            // There is a network connection with the AVR.
+            // TODO:
+            //     Set the device "available" for HOMEY (setAvailable??)
+            avrDevArray[ num ].available = true;
+        })
+        .on("net_disconnected" , (num, name) => {
+            prtMsg(`Avr ${name} (slot ${num}) is disconnected.`);
+            // Lost the network connection with the AVR.
+            // TODO:
+            //     Set the device "unavailable" for HOMEY (setUnavailable??)
+            avrDevArray[ num ].available = false;
+        })
+        .on("net_timed_out" , (num, name) => {
+            prtMsg(`Avr ${name} (slot ${num}) timed out.`);
+            // Lost the network connection with the AVR.
+            // TODO:
+            //     Set the device "unavailable" for HOMEY (setUnavailable??)
+            avrDevArray[ num ].available = false;
+        })
+        .on("net_error", (num,name,err) => {
+            prtMsg(`Avr ${name} (slot ${num}) has a network error -> ${err}.`);
+            // Lost the network connection with the AVR.
+            // TODO:
+            //     Set the device "unavailable" for HOMEY (setUnavailable??)
+            avrDevArray[ num ].available = false;
+        })
+        .on("net_uncaught" , (num, name, err) => {
+            prtMsg(`Avr ${name} (slot ${num}) : uncaught event '${err}'.`);
+            //avrDevArray[ num ].available = false;
+        })
+
+        // Status triggers
+        .on("power_status_chg" , (num, name, cmd ) => {
+            let iStr = getI18String("event." + cmd);
+            prtDbg(`Avr ${name} (slot ${num}) : ${iStr}`);
+        })
+        .on("mute_status_chg" , (num, name, cmd ) => {
+            let iStr = getI18String("event." + cmd);
+            prtDbg(`Avr ${name} (slot ${num}) : ${iStr}`);
+        })
+        .on("eco_status_chg" , (num, name, cmd ) => {
+            let iStr = getI18String("event." + cmd);
+            prtDbg(`Avr ${name} (slot ${num}) : ${iStr}`);
+        })
+        .on("isource_status_chg" , (num, name, cmd ) => {
+            let iStr = getI18String( "event." + cmd);
+            prtDbg(`Avr ${name} (slot ${num}) : ${iStr}`);
+        })
+        .on("surmode_status_chg" , (num, name, cmd ) => {
+            let iStr = getI18String( "event." + cmd);
+            prtDbg(`Avr ${name} (slot ${num}) : ${iStr}`);
+        })
+        .on("volume_chg" , (num, name, value) => {
+            prtDbg(`Avr ${name} (slot ${num}) changed volume to ${value}.`);
+        })
+
+
+        // Debug messages from ath avr control part.
+        .on( "debug_log"  , (num, name, msg ) => {
+            prtMsg(`AVR ${name} (slot ${num}) ${msg}.`);
+        })
+
+        .on("uncaughtException", () => {
+            // catch uncaught exception to prevent runtime problems.
+            prtMsg("Oops: uncaught exception !.");
+        });
+};
+
+/**
+ * Initialize the HOMEY AVR application paramaters called after
+ * startup or reboot of Homey.
  *
- * @method     deleted
+ * @param      Array     devices   Array with all devices info.
+ * @param      Function  callback  Notify Homey we have started
+ * @return     'callback'
+ */
+let init = (devices,callback) => {
+
+    if ( avrSvr === null ) {
+
+        // Initialize the 2 dev arrays.
+        let emptyDev = {
+            dev:        null,
+            available:  false,
+            confloaded: false,
+            used:       false
+        };
+
+        for ( let I = 0 ; I < MAX_AVRS ; I++ ) {
+
+            avrDevArray[I]  = emptyDev;
+        }
+
+        if ( myDebugMode === true ) {
+            for ( let I = 0 ; I < MAX_AVRS; I++ ) {
+                prtDbg(`Slot ${I} has status ${avrDevArray[I].used}.`);
+            }
+            prtDbg(`Device array length: ${devices.length}.`);
+        }
+
+        avrSvr = new eventEmitter();
+
+        setUpListeners();
+
+        if ( devices.length !== 0 ) {
+
+            devices.forEach( (device) => {
+
+                if ( myDebugMode === true ) {
+
+                    prtDbg(`MarantzAvr: init: '${device.avrip}'.`);
+                    prtDbg(`MarantzAvr: init: '${device.avrport}'.`);
+                    prtDbg(`MarantzAvr: init: '${device.avrname}'.`);
+                    prtDbg(`MarantzAvr: init: '${device.avrtype}'.`);
+                    prtDbg(`MarantzAvr: init: '${device.avrindex}'.`);
+                }
+
+                let xDev = {
+                    dev:        new Avr(),
+                    available:  false,
+                    confloaded: false,
+                    used:       true
+                };
+
+                avrDevArray[ device.avrindex ] = xDev;
+
+                avrDevArray[ device.avrindex ].dev.init(device.avrport,
+                                                        device.avrip,
+                                                        device.avrname,
+                                                        device.avrtype ,
+                                                        device.avrindex,
+                                                        avrSvr );
+            });
+
+            if ( myDebugMode === true ) {
+                for ( let I = 0 ; I < avrDevArray.length; I++ ) {
+                    if ( avrDevArray[I].status === true ) {
+                        let host = avrDevArray[ I ].dev.getHostname();
+                        let port = avrDevArray[ I ].dev.getPort();
+
+                        prtDbg(`Entry ${I} has ${host}:${port}.`);
+                    } else {
+                        prtDbg(`Entry ${I} is not used.`);
+                    }
+                }
+            }
+        }
+
+    } else {
+        prtMsg("Init called for the second time!.");
+    }
+
+    callback(null,"");
+};
+
+/**
+ * Homey delete request for an AVR.
+ *
  * @param      Object    device    Info of the to-be-delete device
  * @param      Function  callback  Inform Homey of the result.
  * @return     'callback'
  */
 let deleted = (device, callback) => {
 
-    prtDbg("Marantzavr: delete device called");
-    prtDbg(`Marantzavr: delete_device: ${device.avrip}.`);
-    prtDbg(`Marantzavr: delete_device: ${device.avrport}.`);
-    prtDbg(`Marantzavr: delete_device: ${device.avrname}.`);
-    prtDbg(`Marantzavr: delete_device: ${device.avrindex}.`);
+    if ( myDebugMode === true ) {
+        prtDbg("Marantzavr: delete device called");
+        prtDbg(`Marantzavr: delete_device: ${device.avrip}.`);
+        prtDbg(`Marantzavr: delete_device: ${device.avrport}.`);
+        prtDbg(`Marantzavr: delete_device: ${device.avrname}.`);
+        prtDbg(`Marantzavr: delete_device: ${device.avrindex}.`);
+    }
 
-    prtDbg("device :" , device);
-
-    if ( typeof(avrDevArray[device.avrindex]) === "undefined" ||
-                avrDevArray[device.avrindex]  === null ) {
+    if ( avrDevArray[ device.avrindex ].used === false ) {
 
         callback( new Error( getI18String("error.dev_mis_del")), false );
 
     } else {
 
-        avrDevArray[device.avrindex] = null ;
+        avrDevArray[device.avrindex].dev.disconnect();
+
+        let xDev = {
+            dev:        null,
+            available:  false,
+            confloaded: false,
+            used:       false
+        };
+
+        avrDevArray[ device.avrindex ] = xDev;
 
         callback( null, true);
     }
 };
 
-/**
- * Initiate the stored devices after a start of Homey or loading softwate again.
- *
- * @method     init
- * @param      Array     devices   Array with all devices info/
- * @param      Function  callback  Notify Homey we have started
- * @return     'callback'
- */
-let init = (devices, callback ) => {
-
-    prtDbg("MarantzAvr: init devices called");
-
-    if ( devices.length !== 0 ) {
-
-        devices.forEach( (device) => {
-            prtDbg(`MarantzAvr: init: '${device.avrip}'.`);
-            prtDbg(`MarantzAvr: init: '${device.avrport}'.`);
-            prtDbg(`MarantzAvr: init: '${device.avrname}'.`);
-            prtDbg(`MarantzAvr: init: '${device.avrtype}'.`);
-            prtDbg(`MarantzAvr: init: '${device.avrindex}'.`);
-
-            avrDevArray[ device.avrindex ] = new Avr( device.avrport,
-                                                      device.avrip,
-                                                      device.avrname,
-                                                      device.avrtype  );
-
-            //prtDbg(`avrDevArray slot ${device.avrindex}: `);
-            //prtDbg( device );
-        });
-
-        for ( let I = 0 ; I < avrDevArray.length ; I++ ) {
-            let host = avrDevArray[I].getHostname();
-            let port = avrDevArray[I].getPort();
-
-            prtDbg(`Entry ${I} has ${host}:${port}.`);
-        }
-    }
-
-    callback( null, "");
-};
 
 /**
- * Communication channel between Homey and the AVR to create new AVR devices.
+ * Pair Homey with new devices.
  *
  * @method     pair
  * @param      socket  socket  communication socket
@@ -112,19 +288,23 @@ let init = (devices, callback ) => {
 let pair = (socket) => {
 
     socket
+        .on( "list_devices", (data, callback) => {
 
-        .on("list_devices", (data, callback) => {
+            prtMsg("MarantzAvr: pair => list_devices called.");
 
-            prtDbg( data );
+            if ( myDebugMode === true ) {
 
-            prtDbg("MarantzAvr: pair => list_devices called.");
+                prtDbg("MarantzAvr: pair => list_devices called.");
+                prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrip}'.`);
+                prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrport}'.`);
+                prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrname}'.`);
+                prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrtype}'.`);
+                prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrindex}'.`);
+            }
 
-            prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrip}'.`);
-            prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrport}'.`);
-            prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrname}'.`);
-            prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrtype}'.`);
-            prtDbg(`MarantzAvr: pair => list_devices: '${newDevInfo.avrindex}'.`);
-
+            if ( newDevInfo.avrindex === -1 ) {
+                callback( new Error( getI18String("error.full_dev_ar")), {});
+            }
             let devices = [
                 {
                     name: newDevInfo.avrname,
@@ -139,20 +319,37 @@ let pair = (socket) => {
                 }
             ];
 
-            prtDbg(`MarantzAvr_get_devices: avrIndex is using ${newDevInfo.avrindex}.`);
+            let xDev = {
+                dev:        new Avr(),
+                available:  false,
+                confloaded: false,
+                used:       true
+            };
 
-            avrDevArray[ newDevInfo.avrindex ] = new Avr( newDevInfo.avrport,
-                                                          newDevInfo.avrip,
-                                                          newDevInfo.avrname,
-                                                          newDevInfo.avrtype  );
+            avrDevArray[ newDevInfo.avrindex ] = xDev;
 
-            prtDbg(`avrDevArray slot ${newDevInfo.avrindex} filled.`);
+            avrDevArray[ newDevInfo.avrindex ].dev.init(newDevInfo.avrport,
+                                                        newDevInfo.avrip,
+                                                        newDevInfo.avrname,
+                                                        newDevInfo.avrtype ,
+                                                        newDevInfo.avrindex,
+                                                        avrSvr );
 
-            for ( let I = 0 ; I < avrDevArray.length ; I++ ) {
-                let host = avrDevArray[I].getHostname();
-                let port = avrDevArray[I].getPort();
 
-                prtDbg(`Entry ${I} has ${host}:${port}.`);
+            if ( myDebugMode === true ) {
+                prtDbg("New device array :");
+
+                for ( let I = 0 ; I < avrDevArray.length ; I++ ) {
+                    if ( avrDevArray[I].used == true ) {
+                        let host = avrDevArray[I].dev.getHostname();
+                        let port = avrDevArray[I].dev.getPort();
+                        let used = avrDevArray[I].used;
+
+                        prtDbg(`Entry ${I} has ${host}:${port} (${used}).`);
+                    } else {
+                        prtDbg(`Entry ${I} is not used.`);
+                    }
+                }
             }
 
             newDevInfo = {};
@@ -160,30 +357,24 @@ let pair = (socket) => {
             callback( null, devices);
         })
 
-        .on("get_devices", (data) => {
+        .on( "get_devices", (data) => {
 
-            prtDbg("MarantzAvr: pair => get_devices called.");
-            prtDbg(`MarantzAvr: pair => get_devices: got IP address '${data.avrip}'.`);
-            prtDbg(`MarantzAvr: pair => get_devices: got port '${data.avrport}'.`);
-            prtDbg(`MarantzAvr: pair => get_devices: got AVR name '${data.avrname}'.`);
-            prtDbg(`MarantzAvr: pair => get_devices: got AVR type '${data.avrtype}'.`);
+            if ( myDebugMode === true ) {
+                prtDbg("MarantzAvr: pair => get_devices called.");
+                prtDbg(`MarantzAvr: pair => get_devices: got IP address '${data.avrip}'.`);
+                prtDbg(`MarantzAvr: pair => get_devices: got port '${data.avrport}'.`);
+                prtDbg(`MarantzAvr: pair => get_devices: got AVR name '${data.avrname}'.`);
+                prtDbg(`MarantzAvr: pair => get_devices: got AVR type '${data.avrtype}'.`);
+            }
 
-            let avrCurrIndex = -1 ;
+            let curSlot = -1 ;
 
-            prtDbg("avrDevArray :", avrDevArray.length );
+            for ( let I = 0 ; I < MAX_AVRS ; I++ ) {
 
-            if ( avrDevArray.length === 0 ) {
-                // Empty device array no devices configured yet.
-                avrCurrIndex = 0 ;
-            } else {
-
-                for ( let I = 0 ; I <= avrDevArray.length; I++ ){
-
-                    if ( typeof(avrDevArray[I]) === "undefined" || avrDevArray[I] === null ) {
-                        prtDbg("found open slot ", I );
-                        avrCurrIndex = I ;
-                        break;
-                    }
+                if ( avrDevArray[I].used === false ) {
+                    curSlot = I;
+                    prtDbg(`Using slot ${I}.`);
+                    break;
                 }
             }
 
@@ -192,7 +383,7 @@ let pair = (socket) => {
                 avrport:  data.avrport,
                 avrname:  data.avrname,
                 avrtype:  data.avrtype,
-                avrindex: avrCurrIndex
+                avrindex: curSlot
             };
 
             socket.emit("continue", null );
@@ -203,78 +394,102 @@ let pair = (socket) => {
         });
 };
 
+/**
+ * Capabilities of the AVR application.
+ * onoff: AVR power on or off.
+ */
 let capabilities = {
 
     onoff: {
-        get: (device_data,callback) => {
-            if ( device_data instanceof Error || !device_data) return callback(device_data);
+        get: (device_data, callback) => {
 
-            if ( typeof( avrDevArray[ device_data.avrindex ]) !== "undefined" &&
-                     avrDevArray[ device_data.avrindex ]  !== null  ) {
-
-                let powerStatus = avrDevArray[ device_data.avrindex ].getPowerOnOffState();
-
-                prtDbg("powerStatus : " + powerStatus );
-                callback(null, powerStatus);
-            } else {
-                callback( true, false );
+            if ( device_data instanceof Error || !device_data) {
+                return callback(device_data);
             }
-        },
-        set: (device_data, data, callback) => {
 
-            if ( device_data instanceof Error || !device_data) return callback(device_data);
+            if ( avrDevArray[ device_data.avrindex ].used === true ) {
 
-            if ( typeof( avrDevArray[ device_data.avrindex ]) !== "undefined" &&
-                     avrDevArray[ device_data.avrindex ]  !== null  ) {
+                if ( avrDevArray[ device_data.avrindex ].connected === true ) {
 
-                if ( data == true ) {
-                    avrDevArray[ device_data.avrindex ].powerOn();
+                    let powerStatus =
+                       avrDevArray[ device_data.avrindex ].dev.getPowerOnOffState();
+
+                    callback( null, powerStatus);
                 } else {
-                    avrDevArray[ device_data.avrindex ].powerOff();
+
+                    prtMsg( getI18String("error.devnotavail"));
+                    callback( true, false);
                 }
 
-                callback(null, true);
             } else {
-                callback( true, false );
+                prtMsg( getI18String("error.devnotused"));
+                callback( true, false);
+            }
+
+        },
+        set: (device_data, data, callback ) => {
+
+            if ( device_data instanceof Error || !device_data) {
+                return callback(device_data);
+            }
+
+            if ( avrDevArray[ device_data.avrindex ].used === true ) {
+
+                if ( data === true ) {
+                    avrDevArray[ device_data.avrindex ].dev.powerOn();
+                } else {
+                    avrDevArray[ device_data.avrindex ].dev.powerOff();
+                }
+
+                callback( null, true);
+            } else {
+                prtMsg( getI18String("error.devnotused"));
+                callback( true, false);
             }
         }
     }
 };
 
-let setSettings = (device_data) => {
-
-    prtDbg("SetSettings called");
-    prtDbg(device_data);
-};
-
 /**
- * Change he settings of the selected AVR.
- * Uses the callback to signal Homey of the result.
+ * Change saved parameters of the Homey device.
  *
- * @param      {Object}    device_data    The device data
- * @param      {Object}    newSet         The new set
- * @param      {Object}    oldSet         The old set
- * @param      {Array}     changedKeyArr  The changed key arr
- * @param      {Function}  callback       The callback
+ * @param      {Json-object}    device_data    The device data
+ * @param      {Json-object}    newSet         The new set
+ * @param      {Json-object}    oldSet         The old set
+ * @param      {Array}          changedKeyArr  The changed key arr
+ * @param      {Function}       callback       The callback
+ * @return     'callback'
  */
 let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
 
-    prtDbg( JSON.stringify(device_data));
-    prtDbg( JSON.stringify(newSet));
-    prtDbg( JSON.stringify(changedKeyArr));
+    if ( myDebugMode === true ) {
+        prtDbg( "Device_data -> ", JSON.stringify(device_data));
+        prtDbg( "newSet -> ", JSON.stringify(newSet));
+        prtDbg( "oldSet -> ", JSON.stringify(changedKeyArr));
+    }
 
-    let nIP        = "";
-    let nPort      = "";
-    let nType      = "";
-    let deBug      = false;
-    let num        = 0;
-    let newAvr     = false ;
-    let errorDect  = false ;
-    let errorIdStr = "";
+    prtMsg( "Device_data -> ", JSON.stringify(device_data));
+    prtMsg( "newSet -> ", JSON.stringify(newSet));
+    prtMsg( "oldSet -> ", JSON.stringify(changedKeyArr));
+
+    prtMsg( JSON.stringify(newSet));
+
+    let nIP         = device_data.avrip;
+    let nPort       = device_data.avrport;
+    let nType       = device_data.avrtype;
+    let newAvr      = false ;
+    let errorDect   = false ;
+    let errorIdStr  = "";
+    let avrDebugChg = false;
+    let homDebugChg = false;
+
+    let num = parseInt(newSet.avrport);
 
     changedKeyArr.forEach( (key) => {
+
         switch (key) {
-            case "avrip" :
+
+            case "avrip":
                 if (/^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/.test(newSet.avrip))  {
 
                     prtDbg(`Correct IP adresss ${nIP}.`);
@@ -288,8 +503,6 @@ let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
 
                 break;
             case "avrport" :
-                num = parseInt(nPort);
-
                 if ( isNaN(num) || num < 0 || num > 65535 ) {
                     errorDect = true;
                     errorIdStr = "error.invalidPort";
@@ -302,51 +515,70 @@ let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
                 nType = newSet.avrtype;
                 newAvr = true;
                 break;
-            case "sDebug":
-                deBug = newSet.sDebug;
+            case "aDebug":
+                avrDebugChg = true;
+                break;
+            case "hDebug":
+                homDebugChg = true;
                 break;
         }
-
     });
 
     if ( errorDect === false ) {
 
         if ( newAvr === true ) {
 
-            // get the unchanged parameters
-            //
-            let nIP   = nIP   === "" ? device_data.avrip : nIP ;
-            let nPort = nPort === "" ? device_data.avrport : nPort ;
-            let nType = nType === "" ? device_data.avrtype : nType ;
+            if ( avrDevArray[ device_data.avrindex].used === true ) {
 
-            if ( avrDevArray[ device_data.avrindex ] !== null ) {
-
-                avrDevArray[ device_data.avrindex ].disconnect();
-
-                avrDevArray[ device_data.avrindex ] = null;
+                avrDevArray[ device_data.avrindex].dev.disconnect();
+                avrDevArray[ device_data.avrindex].dev = null ;
             }
 
-            prtDbg(`Updated avr: ${device_data.avrname}:${nIP}:${nPort}:${nType}.`);
+            let xDev = {
+                dev:        new Avr(),
+                available:  false,
+                confloaded: false,
+                used:       true
+            };
 
-            avrDevArray[ device_data.avrindex ] = new Avr( nPort,
-                                                           nIP,
-                                                           device_data.avrname ,
-                                                           nType );
+            avrDevArray[ device_data.avrindex ] = xDev;
+
+            prtDbg(`Check -> ${nPort}:${nIP}:${nType}.`);
+
+            avrDevArray[ device_data.avrindex ].dev.init(nPort,
+                                                     nIP,
+                                                     device_data.avrname,
+                                                     nType,
+                                                     device_data.avrindex,
+                                                     avrSvr );
         }
-    }
 
-    if ( deBug === true ) {
-        avrDevArray[ device_data.avrindex ].setConsoleToDebug();
-    } else {
-        avrDevArray[ device_data.avrindex ].setConsoleOff();
-    }
+        if ( avrDebugChg === true ) {
+            if ( newSet.aDebug === true ) {
 
-    if ( errorDect === true ) {
-        prtDbg("Settings: returning an error.");
-        callback( new Error(getI18String(errorIdStr)), false );
+                avrDevArray[ device_data.avrindex].dev.setConsoleToDebug();
+
+            } else {
+                avrDevArray[ device_data.avrindex].dev.setConsoleOff();
+            }
+        }
+
+        if ( homDebugChg === true ) {
+
+            if ( newSet.hDebug === true ) {
+
+                switchOnDebugMode();
+            } else {
+
+                switchOffDebugMode();
+            }
+        }
+
+        prtDbg("Settings returning oke");
+        callback( null, true);
     } else {
-        prtDbg("Settings: returning an oke.");
-        callback( null, true );
+        prtDbg("Settings returning a failure");
+        callback( new Error( getI18String(errorIdStr)), false );
     }
 };
 
@@ -354,13 +586,26 @@ let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
  * Homey is shutting down/ reboots, Close the open network connections.
  **************************************************/
 
+/**
+ * Homey.on("unload").
+ * Called when Homey requests the app to stop/unload.
+ */
 Homey.on("unload" , () => {
 
     for ( let I = 0 ; I < avrDevArray.length ; I++ ) {
-        if ( typeof( avrDevArray[ I ]) !== "undefined" &&
-                     avrDevArray[ I ]  !== null  ) {
 
-            avrDevArray[I].diconnect();
+        if ( avrDevArray[I].used === true ) {
+
+            avrDevArray[I].dev.disconnect();
+
+            let xDev = {
+                dev:        null,
+                available:  false,
+                confloaded: false,
+                used:       false
+            };
+
+            avrDevArray[ I ] = xDev;
         }
     }
 });
@@ -373,29 +618,61 @@ Homey.manager("flow")
 
     .on("action.poweron" , (callback, args) => {
 
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            avrDevArray[ args.device.avrindex ].powerOn();
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-            callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.powerOn();
+
+                callback( null, true );
+            } else {
+
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
         } else {
-            prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowndev")), false );
+
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+            callback( new Error( getI18String("error.devnotused")), false );
+
         }
     })
 
     .on("action.poweroff", (callback,args) => {
 
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            avrDevArray[ args.device.avrindex ].powerOff();
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-            callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.powerOff();
+
+                callback( null, true );
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
         } else {
-            prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowndev")), false );
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+            callback( new Error( getI18String("error.devnotused")), false );
+
         }
     });
 
@@ -407,29 +684,59 @@ Homey.manager("flow")
 
     .on("action.main_zone_poweron" , (callback, args) => {
 
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            avrDevArray[ args.device.avrindex ].mainZonePowerOn();
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-            callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.mainZonePowerOn();
+
+                callback( null, true );
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
         } else {
-            prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowndev")), false );
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+            callback( new Error( getI18String("error.devnotused")), false );
+
         }
     })
 
     .on("action.main_zone_poweroff", (callback,args) => {
 
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            avrDevArray[ args.device.avrindex ].mainZonePowerOff();
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-            callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.mainZonePowerOff();
+
+                callback( null, true );
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
         } else {
-            prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowndev")), false );
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+            callback( new Error( getI18String("error.devnotused")), false );
+
         }
     });
 
@@ -440,29 +747,59 @@ Homey.manager("flow")
 
     .on("action.mute", (callback,args) => {
 
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            avrDevArray[ args.device.avrindex ].muteOn();
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-            callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.muteOn();
+
+                callback( null, true );
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
         } else {
-            prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowndev")), false );
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+            callback( new Error( getI18String("error.devnotused")), false );
+
         }
     })
 
     .on("action.unmute", (callback,args) => {
 
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            avrDevArray[ args.device.avrindex ].muteOff();
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-            callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.muteOff();
+
+                callback( null, true );
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
         } else {
-            prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowndev")), false );
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+            callback( new Error( getI18String("error.devnotused")), false );
+
         }
     });
 
@@ -474,30 +811,82 @@ Homey.manager("flow")
 
     .on("action.selectinput.input.autocomplete", (callback, args) => {
 
-        prtDbg( args.device.avrindex );
+        if ( typeof(args.device) === "undefined" ) {
+            // The AVR must be selected first as the input source selection
+            // is depending on it.
+            // If continue without the AVR runtime errors will occur.
+            //
+            prtMsg("Error: No device selected");
 
-        let items = avrDevArray[ args.device.avrindex ].getValidInputSelection();
+            callback( new Error( getI18String("error.devnotsel")), false );
 
-        let cItems = [];
+        } else {
 
-        for ( let I = 0 ; I < items.length; I++ ){
-            let x = {};
-            x.command = items[I].command;
-            x.name    = getI18String(items[I].name);
+            if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            cItems.push(x);
+                if ( avrDevArray[ args.device.avrindex ].confLoaded === true ) {
+
+                    let items = avrDevArray[ args.device.avrindex ].dev.getValidInputSelection();
+
+                    let cItems = [];
+
+                    for ( let I = 0 ; I < items.length; I++ ){
+                        let x = {};
+                        x.command = items[I].command;
+                        x.name    = getI18String(items[I].i18n);
+
+                        cItems.push(x);
+                    }
+
+                    callback(null, cItems);
+
+                } else {
+                    // Configuration (AVR type.json file) not loaded.
+                    // That is needed otherwise runtime error will occur.
+                    //
+                    prtMsg(`Error: ${args.device.avrname} has not loaded the configuration.`);
+
+                    callback( new Error( getI18String("error.devnotconf")), false );
+                }
+
+            } else {
+                // Try to access a slot in the dev Array which does not have
+                // a AVR attached to it.
+                //
+                prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+                callback( new Error( getI18String("error.devnotused")), false );
+            }
         }
-
-        callback(null, cItems);
     })
 
     .on("action.selectinput", (callback, args) => {
 
-        prtDbg( args );
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-        avrDevArray[ args.device.avrindex ].sendInputSourceCommand(args.input.command);
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-        callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.sendInputSourceCommand(args.input.command);
+
+                callback(null, true);
+
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
+        } else {
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: ${args.device.avrname} has not loaded the configuration.`);
+
+            callback( new Error( getI18String("error.devnotconf")), false );
+        }
     });
 
 /**************************************************
@@ -508,43 +897,87 @@ Homey.manager("flow")
 
     .on("action.volumeup", (callback,args) => {
 
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            avrDevArray[ args.device.avrindex ].volumeUp();
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-            callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.volumeUp();
+
+                callback( null, true );
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
         } else {
-            prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowndev")), false );
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+            callback( new Error( getI18String("error.devnotused")), false );
+
         }
     })
 
     .on("action.volumedown", (callback,args) => {
 
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            avrDevArray[ args.device.avrindex ].volumeDown();
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-            callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.volumeDown();
+
+                callback( null, true );
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
         } else {
-            prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowndev")), false );
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+            callback( new Error( getI18String("error.devnotused")), false );
+
         }
     })
     .on("action.setvolume" , (callback,args) => {
 
-        if ( typeof( avrDevArray[ args.device.avrindex ]) !== "undefined" &&
-                     avrDevArray[ args.device.avrindex ]  !== null  ) {
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            avrDevArray[ args.device.avrindex ].setVolume( args.volumeNum);
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-            callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.setVolume( args.volumeNum);
+
+                callback( null, true );
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
 
         } else {
-            prtDbg("Error: Unknown device.");
-            callback(new Error(getI18String("error.unknowndev")), false );
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+            callback( new Error( getI18String("error.devnotused")), false );
+
         }
     }) ;
 
@@ -556,30 +989,82 @@ Homey.manager("flow")
 
     .on("action.surround.input.autocomplete", (callback, args) => {
 
-        prtDbg( args.device.avrindex );
+        if ( typeof(args.device) === "undefined" ) {
+            // The AVR must be selected first as the input source selection
+            // is depending on it.
+            // If continue without the AVR runtime errors will occur.
+            //
+            prtMsg("Error: No device selected");
 
-        let items = avrDevArray[ args.device.avrindex ].getValidSurround();
+            callback( new Error( getI18String("error.devnotsel")), false );
 
-        let cItems = [];
+        } else {
 
-        for ( let I = 0 ; I < items.length; I++ ){
-            let x = {};
-            x.command = items[I].command;
-            x.name    = getI18String(items[I].name);
+            if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            cItems.push(x);
+                if ( avrDevArray[ args.device.avrindex ].confLoaded === true ) {
+
+                    let items = avrDevArray[ args.device.avrindex ].dev.getValidSurround();
+
+                    let cItems = [];
+
+                    for ( let I = 0 ; I < items.length; I++ ){
+                        let x = {};
+                        x.command = items[I].command;
+                        x.name    = getI18String(items[I].i18n);
+
+                        cItems.push(x);
+                    }
+
+                    callback(null, cItems);
+
+                } else {
+                    // Configuration (AVR type.json file) not loaded.
+                    // That is needed otherwise runtime error will occur.
+                    //
+                    prtMsg(`Error: ${args.device.avrname} has not loaded the configuration.`);
+
+                    callback( new Error( getI18String("error.devnotconf")), false );
+                }
+
+            } else {
+                // Try to access a slot in the dev Array which does not have
+                // a AVR attached to it.
+                //
+                prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+                callback( new Error( getI18String("error.devnotused")), false );
+            }
         }
-
-        callback(null, cItems);
     })
 
     .on("action.surround", (callback, args) => {
 
-        prtDbg( args );
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-        avrDevArray[ args.device.avrindex ].sendSurroundCommand(args.input.command);
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-        callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.sendSurroundCommand(args.input.command);
+
+                callback(null, true);
+
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
+        } else {
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: ${args.device.avrname} has not loaded the configuration.`);
+
+            callback( new Error( getI18String("error.devnotconf")), false );
+        }
     });
 
 /**************************************************
@@ -587,37 +1072,90 @@ Homey.manager("flow")
  *
  * NEED TO BE CHANGED:
  * Needs to be conditional: should be available only when AVR supports ECO
- * Currently it needs to defined in app.json regardsless if it is supported or not
- * Currently if not supported an array with 1 entry "not supported" is returned.
+ * Currently it needs to defined in app.json regardsless if it is supported or not.
+ *
+ * Currently if ECO is not supported an array with 1 entry "not supported" is returned.
  **************************************************/
 Homey.manager("flow")
 
     .on("action.eco.input.autocomplete", (callback, args) => {
 
-        prtDbg( args.device.avrindex );
+        if ( typeof(args.device) === "undefined" ) {
+            // The AVR must be selected first as the input source selection
+            // is depending on it.
+            // If continue without the AVR runtime errors will occur.
+            //
+            prtMsg("Error: No device selected");
 
-        let items = avrDevArray[ args.device.avrindex ].getValidEcoCommands();
+            callback( new Error( getI18String("error.devnotsel")), false );
 
-        let cItems = [];
+        } else {
 
-        for ( let I = 0 ; I < items.length; I++ ){
-            let x = {};
-            x.command = items[I].command;
-            x.name    = getI18String(items[I].name);
+            if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-            cItems.push(x);
+                if ( avrDevArray[ args.device.avrindex ].confLoaded === true ) {
+
+                    let items = avrDevArray[ args.device.avrindex ].dev.getValidEcoCommands();
+
+                    let cItems = [];
+
+                    for ( let I = 0 ; I < items.length; I++ ){
+                        let x = {};
+                        x.command = items[I].command;
+                        x.name    = getI18String(items[I].i18n);
+
+                        cItems.push(x);
+                    }
+
+                    callback(null, cItems);
+
+                } else {
+                    // Configuration (AVR type.json file) not loaded.
+                    // That is needed otherwise runtime error will occur.
+                    //
+                    prtMsg(`Error: ${args.device.avrname} has not loaded the configuration.`);
+
+                    callback( new Error( getI18String("error.devnotconf")), false );
+                }
+
+            } else {
+                // Try to access a slot in the dev Array which does not have
+                // a AVR attached to it.
+                //
+                prtMsg(`Error: Slot ${args.device.avrindex} is not used.`);
+
+                callback( new Error( getI18String("error.devnotused")), false );
+            }
         }
-
-        callback(null, cItems);
     })
 
     .on("action.eco", (callback, args) => {
 
-        prtDbg( args );
+        if ( avrDevArray[ args.device.avrindex ].used === true ) {
 
-        avrDevArray[ args.device.avrindex ].sendEcoCommand(args.input.command);
+            if ( avrDevArray[ args.device.avrindex ].available == true ) {
 
-        callback(null, true);
+                avrDevArray[ args.device.avrindex ].dev.sendEcoCommand(args.input.command);
+
+                callback(null, true);
+
+            } else {
+                // Configuration (AVR type.json file) not loaded.
+                // That is needed otherwise runtime error will occur.
+                //
+                prtMsg(`Error: ${args.device.avrname} is not available.`);
+
+                callback( new Error( getI18String("error.devnotavail")), false );
+            }
+
+        } else {
+            // Try to access a slot in the dev Array which does not have
+            // a AVR attached to it.
+            //
+            prtMsg(`Error: ${args.device.avrname} has not loaded the configuration.`);
+
+            callback( new Error( getI18String("error.devnotconf")), false );
+        }
     });
 
 module.exports.deleted      = deleted;
@@ -625,4 +1163,3 @@ module.exports.init         = init;
 module.exports.pair         = pair;
 module.exports.capabilities = capabilities;
 module.exports.settings     = settings;
-module.exports.setSettings  = setSettings;

@@ -5,20 +5,34 @@
  */
 
 "use strict";
+let fs   = require("fs");
+let path = require("path");
+let eventEmitter = require("events");
 
-let IPADDRESS = "192.168.1.35";
-let IPPORT    = 2222;
+const IPADDRESS = "192.168.1.35";
+const IPPORT    = 2222;
+const AVRTYPE   = "SR5010";
+const AVRNAME   = "avrtest";
+
 
 let Avr = require("./avr");
 
-let mAvr = new Avr( IPPORT, IPADDRESS, "testavr", "SR5010");
+let avrDevArray = [];
+let myDebugMode = true ;
 
-console.log("IP address : ", mAvr.getHostname());
-console.log("Port       : ", mAvr.getPort());
-console.log("Type       : ", mAvr.getType());
-console.log("Name       : ", mAvr.getName());
+let prtDbg = (str) => {
+    if ( myDebugMode === true ) {
+        let date = new Date();
+        let dateStr = date.toISOString();
+        console.log(`${dateStr}-${str}`);
+    }
+};
 
-mAvr.setTest(); // enable testing (ignoring avr type restrictions).
+let prtMsg = (str) => {
+    let date = new Date();
+    let dateStr = date.toISOString();
+    console.log(`${dateStr}-${str}`);
+};
 
 /**
  * Check all power commands.
@@ -208,17 +222,145 @@ let checkEcoCommands = () => {
  * Calls checks for power, mani zone power, mute, volume, inputsource, surround mode and eco.
  *
  */
-let checkAll = () => {
+let checkAll = (xAvr) => {
 
-    setTimeout( () => { checkPowerCommands();             },    10);
-    setTimeout( () => { checkMainZonePowerCommands();     },  3000);
-    setTimeout( () => { checkMuteCommands();              },  6000);
-    setTimeout( () => { checkVolumeCommands();            },  8000);
-    setTimeout( () => { checkInputSourceCommands();       }, 11000);
-    setTimeout( () => { checkSurroundCommands();          }, 25000);
-    setTimeout( () => { checkEcoCommands();               }, 35000);
-    setTimeout( () => { process.exit(0);                  }, 40000);
+    setTimeout( () => { checkPowerCommands(xAvr);             },    10);
+    setTimeout( () => { checkMainZonePowerCommands(xAvr);     },  3000);
+    setTimeout( () => { checkMuteCommands(xAvr);              },  6000);
+    setTimeout( () => { checkVolumeCommands(xAvr);            },  8000);
+    setTimeout( () => { checkInputSourceCommands(xAvr);       }, 11000);
+    setTimeout( () => { checkSurroundCommands(xAvr);          }, 25000);
+    setTimeout( () => { checkEcoCommands(xAvr);               }, 35000);
+    setTimeout( () => { process.exit(0);                      }, 40000);
+};
+
+let setUpListeners = () => {
+
+    eventSocket
+        // initiation and load avr type json files events
+        .on("init_success", (num, name, type) => {
+            prtDbg(`AVR ${name} (slot ${num}) has loaded the ${type}.json file.`);
+            avrDevArray[ num ].available = true;
+
+            let xhost = avrDevArray[0].dev.getHostname();
+            let xport = avrDevArray[0].dev.getPort();
+            let xtype = avrDevArray[0].dev.getType();
+            let xname = avrDevArray[0].dev.getName();
+
+            prtMsg(`IP address : ${xhost}.`);
+            prtMsg(`Port       : ${xport}.`);
+            prtMsg(`Type       : ${xtype}.`);
+            prtMsg(`Name       : ${xname}.`);
+
+            avrDevArray[0].dev.setTest();
+        })
+        .on("init_failed", (num, name, type) => {
+            prtMsg(`Error: AVR ${name} (slot ${num}) has fail to load the ${type}.json file.`);
+            avrDevArray[ num ].available = false;
+        })
+
+        // network events.
+        .on("net_connected", (num,name) => {
+            prtDbg(`Avr ${name} (slot ${num}) is connected.`);
+
+            checkAll();
+
+        })
+        .on("net_disconnected" , (num, name) => {
+            prtMsg(`Avr ${name} (slot ${num}) is disconnected.`);
+            avrDevArray[ num ].connected = false;
+        })
+        .on("net_timed_out" , (num, name) => {
+            prtMsg(`Avr ${name} (slot ${num}) timed out.`);
+            avrDevArray[ num ].connected = false;
+        })
+        .on("net_error", (num,name,err) => {
+            prtMsg(`Avr ${name} (slot ${num}) has a network error -> ${err}.`);
+            avrDevArray[ num ].connected = false;
+        })
+        .on("net_uncaught" , (num, name,err) => {
+            prtMsg(`Avr ${name} (slot ${num}) : uncaught network event -> '${err}.`);
+            //avrDevArray[ num ].connected = false;
+        })
+
+        // Status triggers
+        .on("power_status_chg" , (num, name, cmd ) => {
+            prtDbg(`Avr ${name} (slot ${num}) : ${cmd}`);
+        })
+        .on("mute_status_chg" , (num, name, cmd ) => {
+            prtDbg(`Avr ${name} (slot ${num}) : ${cmd}`);
+        })
+        .on("eco_status_chg" , (num, name, cmd ) => {
+            prtDbg(`Avr ${name} (slot ${num}) : ${cmd}`);
+        })
+        .on("isource_status_chg" , (num, name, cmd ) => {
+            prtDbg(`Avr ${name} (slot ${num}) : ${cmd}`);
+        })
+        .on("surmode_status_chg" , (num, name, cmd ) => {
+            prtDbg(`Avr ${name} (slot ${num}) : ${cmd}`);
+        })
+        .on("volume_chg" , (num, name, value) => {
+            prtDbg(`Avr ${name} (slot ${num}) changed volume to ${value}.`);
+        })
+
+         // Debug messages from ath avr control part.
+        .on( "debug_log"  , (num, name, msg ) => {
+            prtMsg(`AVR ${name} (slot ${num}) ${msg}.`);
+        })
+
+        .on("uncaughtException", () => {
+            // catch uncaught exception to prevent runtime problems.
+            prtMsg("Oops: uncaught exception !.");
+        });
+};
+
+/***********************************************************************************
+ * Main prog
+ **********************************************************************************/
+
+prtMsg("Testing the marantz configuration files:");
+
+let confDir     = path.join( __dirname, "/conf/");
+let confFile    = path.join( __dirname,`/conf/${AVRTYPE}.json`);
+let conf        = null;
+let eventSocket = new eventEmitter();
+
+avrDevArray[0] = {
+    dev:       null,
+    connected: false,
+    available: false,
+    used:      false
 };
 
 
-checkAll();
+fs.readdirSync( confDir ).forEach( (file) => {
+
+    let tFile = confDir + file ;
+
+    let jsondata = fs.readFileSync( tFile ).toString();
+
+    try {
+        conf = JSON.parse( jsondata );
+        prtMsg(`${file} : Oke`);
+    } catch(err) {
+        prtMsg(`${file} : Failed.`);
+        prtMsg(`Reason: ${err}.`);
+    }
+});
+
+let jsondata = fs.readFileSync( confFile ).toString();
+
+try{
+    conf = JSON.parse( jsondata);
+    console.log(`Avrtest has loaded the ${confFile}.`);
+} catch (err) {
+    console.log(`Oops cannot load/parse '${confFile}'.`);
+    process.exit(2);
+}
+
+setUpListeners();
+
+avrDevArray[0].dev = new Avr();
+avrDevArray[0].dev.init( IPPORT, IPADDRESS, AVRNAME, AVRTYPE, 0 , eventSocket);
+
+let mAvr= avrDevArray[0].dev;

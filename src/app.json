@@ -213,11 +213,19 @@
                     },
                     "children": [
                         {
-                            "id":    "sDebug",
+                            "id":    "aDebug",
                             "type":  "checkbox",
                             "label": {
-                                "en":  "Debug ",
-                                "nl":  "Debug"
+                                "en":  "Debug avr control part",
+                                "nl":  "Debug avr controle gedeelte"
+                            }
+                        },
+                        {
+                            "id":    "hDebug",
+                            "type":  "checkbox",
+                            "label": {
+                                "en":  "Debug homey part",
+                                "nl":  "Debug homey gedeelte"
                             }
                         }
                     ]
@@ -462,6 +470,28 @@
                         "placeholder": {
                             "en": "Target mode",
                             "nl": "Gewenste mode"
+                        }
+                    }
+                ]
+            }
+        ],
+        "triggers": [
+            {
+                "id": "power_on",
+                "title": {
+                    "en": "Main power switched on.",
+                    "nl": "AVR aangezet."
+                },
+                "tokens": [
+                    {
+                        "avrname": "avr_name",
+                        "title": {
+                            "en": "AVR",
+                            "nl": "AVR"
+                        },
+                        "example": {
+                            "en": "avr",
+                            "nl": "avr"
                         }
                     }
                 ]

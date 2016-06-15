@@ -1,7 +1,7 @@
 # Homeyavr
 
 Application to connect Homey to a Marantz AVR.
-Version: 0.9.0
+Version: 0.9.1
 
 Currently working and supported in flows:
 
@@ -13,18 +13,21 @@ Currently working and supported in flows:
 	- Off
 * source input selection
 	- Select input source selections depending on the AVR type.
-	- Selection names in the 'locale/<lang>.json' files.
 * volume
 	 - Up
 	 - Down
 	 - Set (values between 0 - 80 )
 * surround mode selection
 	- Surround mode selections depending on the AVR type
-	- Selection names in the 'locale/<lang>.json' files.
 * ECO depending on the AVR type
 	- On
 	- Off
 	- Auto
+* All selection strings and messages are using the "locales/<LANG>.json" files.
+  I.e for new languages support only a new "locales/<LANG>.json" and app.json
+  should be suffient.
+
+
 
 App updates the internal status of the AVR constantly, even if the command is given
 by a different application or by remote control, as long the AVR is transmitting

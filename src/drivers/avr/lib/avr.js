@@ -5,6 +5,13 @@ let fs   = require("fs");
 let path = require("path");
 let eventEmitter = require("events");
 
+const  TIME_TO_RETRY          = 10000; // === 10 sec
+                                       // Time to wait before re-open a new
+                                       // connection to the AVR will take place.
+const  WAIT_BETWEEN_TRANSMITS = 100 ;  // === 100 msec
+                                       // Wait time between two consecutive
+                                       // command transmissions.
+                                       // Marantz default is 50 msec or higher.
 
 /**
  * Class AVR
@@ -12,50 +19,36 @@ let eventEmitter = require("events");
 class Avr {
 
     /**
-     * Creta a AVR.
-     * @Constructor
-     *
-     * @param      {number}  sPort   The network port to use.
-     * @param      {string}  sHost   The ip address of the AVR
-     * @param      {string}  sName   The name of the AVR
-     * @param      {string}  sType   The type of the AVR
+     * Create a new AVR Object.
      */
-    constructor( sPort , sHost, sName, sType ) {
-        this.port   = sPort;
-        this.host   = sHost;
-        this.name   = sName;
-        this.type   = sType;
-        this.errMsg = "";
-        this.conf   = null;
+    constructor() {
+        this.avrPort       = 0   ; // Network port to use
+        this.avrHost       = ""  ; // IP address or hostname to use
+        this.avrName       = ""  ; // Given name within Homry
+        this.avrType       = ""  ; // Type of AVR to be used
+        this.avrNum        = -1  ; // Internal index
+        this.conChn        = null; // Event channel to communicate with the
+                                   // Homey part of the application (driver.js)
+        this.errMsg        = "";
+        this.conf          = null; // Will hold avr type configuration data
+        this.selAr         = [];   // Array with possible input source device
+        this.surroundAr    = [];   // Array with possible surround modes
+        this.ecoAr         = [];   // Array with possible eco modes
+        this.sendAr        = [];   // the sendbuffer
+        this.insertIndex   = 0;    // Send index of the sendbuffer.
+        this.deleteIndex   = 0;    // Delete index of the sendbuffer
+        this.MAXINDEX      = 64 ;  // Max commands in the sendbuffer
+        this.socket        = null;
+        this.test          = 0;    // Test indicator,
+                                   // lifts some restrictions during testing.
+        this.consoleOut    = 1;    // 0 = no output
+                                   // 1 = debug
 
-        this.test   = 0;
-
-        this.avrConfigFile = `./conf/${this.type}.json`;
-        this.consoleOut = 0;    // 0 = no output
-                                // 1 = info
-                                // 2 = debug (more info)
-
+        // Internal process state vars.
+        this.isLoopRunning        = false;
+        this.hasToStop            = false;
         this.hasConfigloaded      = false;
         this.hasNetworkConnection = false;
-
-        // Array with possible inputsource selections.
-        this.selAr         = [];
-        this.surroundAr    = [];
-        this.ecoAr         = [];
-        this.sendAr        = [];
-        this.insertIndex   = 0;
-        this.deleteIndex   = 0;
-        this.MAXINDEX      = 64 ;
-        this.isLoopRunning = false ;
-        this.hasToStop     = false ;
-        this.socket        = null;
-
-        // initialize send Array.
-        for ( let I = 0 ; I <= this.MAXINDEX; I++ ) {
-            this.sendAr[I] = "";
-        }
-
-        this.server      = new eventEmitter();
 
         // Initial parameter status of the AVR.
         // Will be updated by _processData
@@ -67,44 +60,174 @@ class Avr {
         this.surroundMode         = "unknown";
         this.ecoStatus            = "unknown";
 
-        // Get the correct configuration of the AVR type.
-        // Note needs to be readFileSync otherwise the command will be looked up
-        //      before the conf is loaded with the  result the program to throw errors.
-        //      It will only occur during creation (new....)
-        this._d(path.join( __dirname, this.avrConfigFile) );
-        let jsondata = fs.readFileSync(path.join( __dirname, this.avrConfigFile)).toString();
-
-        try {
-            this.conf = JSON.parse( jsondata );
-            this.hasConfigloaded = true;
-            this._d("config loaded !.");
-        } catch (err ) {
-            this.conf = null;
-            this.hasConfigloaded = false;
-            this._d(`Error parsing ${this.avrConfigFile} : ${err}.`);
+        // initialize send Array.
+        for ( let I = 0 ; I <= this.MAXINDEX; I++ ) {
+            this.sendAr[I] = "";
         }
 
-        // Fill the input selection array with the entries supported by the AVR type
-        this._fillSelectionArray() ;
-        // Fill the surround selection array with the entries supported by the AVR type.
-        this._fillSurroundArray();
-        // File the eco selection array with entries supported by the AVR.
-        this._fillEcoArray();
-
-        // Create the socket for the communication with the AVR.
-        // Set allowHalfOpen so the connection will stay open after the send buffers
-        // are empty.
-
-        // Connect to the AVR and set the listeners.
-        this._openConnection();
-
-        // Enable data transmission to the AVR.
+        // internal event channel.
+        this.server      = new eventEmitter();
+        // setup the internal event listeners
         this._eventloop();
     }
 
-     /*********************************************************************
+    /**
+     * Initialize an AVR.
+     *
+     * @param      {number}  sPort   The network port to use.
+     * @param      {string}  sHost   The ip address of the AVR
+     * @param      {string}  sName   The name of the AVR
+     * @param      {string}  sType   The type of the AVR
+     * @param      {number}  sNum    The index into the AVR array (internal)
+     * @param      {socket}  sChannel The event socket
+     */
+
+    init( sPort , sHost, sName, sType , sNum , sChannel ) {
+        this.avrPort   = sPort;
+        this.avrHost   = sHost;
+        this.avrName   = sName;
+        this.avrType   = sType;
+        this.avrNum    = sNum ;
+        this.conChn    = sChannel;
+
+        //this._d(`Test: ${this.avrHost}:${this.avrPort} - ${this.avrName} `);
+
+        // Get the correct configuration of the AVR type.
+
+        this.avrConfigFile = path.join(__dirname, `/conf/${this.avrType}.json` );
+        this._d(this.avrConfigFile );
+
+        fs.readFile( this.avrConfigFile, (err, data) => {
+
+            if ( err ) {
+                this.conf = null;
+                this.hasConfigloaded = false;
+                this.conChn.emit("init_failed", this.avrNum, this.avrType, err);
+                return;
+            }
+
+            try {
+                this.conf = JSON.parse( data );
+            } catch (err ) {
+
+                this.conf = null;
+                this.hasConfigloaded = false;
+                this.conChn.emit("init_failed", this.avrNum, this.avrType, err);
+                return;
+            }
+
+            this.hasConfigloaded = true;
+
+            // Fill the input selection array with the entries supported by the AVR type
+            this._fillSelectionArray() ;
+            // Fill the surround selection array with the entries supported by the AVR type.
+            this._fillSurroundArray();
+            // File the eco selection array with entries supported by the AVR.
+            this._fillEcoArray();
+
+            this.conChn.emit("init_success", this.avrNum, this.avrName, this.avrType);
+            this.server.emit("config_loaded");
+        });
+    }
+
+    /*********************************************************************
      * Private methods
      *********************************************************************/
+
+    /**
+     * EventLoop handles the avr control events
+     * @private
+     */
+
+    _eventloop() {
+
+        this.server
+            // 'config_loaded' event is send by 'init' after succesfull
+            // loading and parsing the AVR config file.
+            // next action: open network connection.
+            .on( "config_loaded", () => {
+                this._openConnection();
+            })
+
+            // Network events all emitted by '_openConnection' depending
+            // (except 'net_retry') on the received network events.
+            // 'net_connect'    -> new connection established
+            // 'net_disconnect' -> Disconnection request from the AVR
+            // 'net_error'      -> Received net work errors.
+            // 'net_timedout'   -> Network connection to the AVR has a timeout.
+            // 'net_retry'      -> Try to connect again to the AVR.
+            .on( "net_connect" , () => {
+                // notify 'homey' part there is a connection
+                // i.e make dev available
+
+                this._getAVRStatusUpdate(); // get the status of the new AVR
+
+                // Wait 2 sec before informing homey so the status of the AVR
+                // can be collected.
+                // Set hasNetworkConnection after the the wait time so the
+                // above initial status requests don't cause events
+                setTimeout( () => {
+                    this.hasNetworkConnection = true;
+                    this.conChn.emit("net_connected", this.avrNum, this.avrName);
+                }, 2000);
+            })
+            .on( "net_disconnect" ,() => {
+                // notify 'homey' part connection is disconnected
+                // i.e make dev unavailable
+                this.conChn.emit("net_disconnected", this.avrNum, this.avrName);
+                this.server.emit("net_retry"); // connect again.
+            })
+            .on("net_error" , (err) => {
+                // notify 'homey' part connection is disconnected
+                // i.e make dev unavailable
+                this.conChn.emit("net_error", this.avrNum, this.avrName, err);
+                this.server.emit("net_retry"); // connect again.
+            })
+            .on("net_timed_out", () => {
+                // notify 'homey' part connection is disconnected
+                // i.e make dev unavailable
+                this.conChn.emit("net_timed_out", this.avrNum, this.avrName);
+                this.server.emit("net_retry"); // connect again.
+            })
+            .on( "net_retry" , () => {
+                // Don't start the action if a request to stop is received.
+                // hasToStop will be set by 'disconnect' function.
+                if ( this.hasToStop === false ) {
+                    setTimeout( () => {
+                        this._openConnection();
+                    }, TIME_TO_RETRY);
+                }
+            })
+            // Disconnect request from user/Homey
+            .on( "req_disconnect" , () => {
+                this.hasToStop = true;
+                this.socket.end();
+            })
+
+            // send buffer events.
+            // 'send_command' event occurs when
+            //    1) the send buffer is filled with a new command (_insertIntoSendBuffer)
+            //    2) After a command is send to the AVR.
+            //       To check if the buffer is no empty. (_insertIntoSendBufferToAvr).
+
+            .on( "new_data" , () => {
+                // New commands are added to the send buffer.
+                // start the send loop only once
+                // will be reset as soon the send buffer runs out of new data.
+                if ( this.isLoopRunning === false ) {
+                    this.isLoopRunning = true;
+                    this._checkSendBuffer(); // Send command to AVR.
+                }
+            })
+            .on( "check_buffer" , () => {
+                this._checkSendBuffer();
+            })
+
+            // catch uncaught exception to prevent runtime problems.
+            .on("uncaughtException", (err) => {
+                this.conChn.emit("net_uncaught", this.avrNum, this.avrName, err);
+            });
+    }
 
     /**
      * Connects to the AVR and sets listeners on the possible connection events.
@@ -112,65 +235,147 @@ class Avr {
      *  @private
      */
     _openConnection() {
-        this._d(`hasToStop is ${this.hasToStop}.`);
+        this._d(`Opening AVR network connection to ${this.avrHost}:${this.avrPort}.`);
 
-        if ( this.hasToStop === false ) {
+        // Use allowHalfOpen to create a permanent connection to the AVR
+        // over the network otherwise the connection will terminate asa soon
+        // as the socket send buffer is empty.
+        this.socket = new net.Socket({
+            allowHalfOpen: true
+        });
 
-            this._d(`Opening AVR network connection to ${this.host}:${this.port}.`);
-
-            this.socket = new net.Socket({
-                allowHalfOpen: true
+        this.socket.connect( this.avrPort, this.avrHost )
+            .on( "connect" , () => {
+                this.server.emit("net_connect");
+            })
+            .on( "error" , (err) => {
+                this.hasNetworkConnection = false;
+                this.socket.end();
+                this.socket = null;
+                this.server.emit("net_error", err);
+            })
+            .on("data" , (data) => {
+                this._processData(data);
+            })
+            .on( "end" , () => {
+                this.hasNetworkConnection = false;
+                this.socket.end();
+                this.socket = null;
+                this.server.emit("net_disconnect");
+            })
+            .on( "timeout" , () => {
+                this.hasNetworkConnection = false;
+                this.socket.end();
+                this.socket = null;
+                this.server.emit("net_timed_out");
+            })
+            .on( "uncaughtException" , (err) => {
+                this.hasNetworkConnection = false;
+                this.socket.end();
+                this.socket = null;
+                this.server.emit("net_error", new Error(`uncaught exception - ${err}.`));
             });
+    }
 
-            this.socket.connect( this.port, this.host )
-                .on( "connect" , () => {
-                    this.hasNetworkConnection = true;
-                    this._d("Network connection open.");
-                    // As this is a new connection get the current status of the AVR.
-                    this._getAVRStatusUpdate();
-                })
-                .on( "error" , (err) => {
-                    this._d(`Error: ${err}.`);
-                    this.hasNetworkConnection = false;
-                    this.socket.end();
-                    this.socket = null;
-                    this._retryToOpenConnection();
-                })
-                .on("data" , (data) => {
-                    this._processData(data);
-                })
-                .on( "end" , () => {
-                    this._d("AVR closed the connection.");
-                    this.hasNetworkConnection = false;
-                    this.socket.end();
-                    this.socket = null;
-                    this._retryToOpenConnection();
-                })
-                .on( "timeout" , () => {
-                    this._d("Connection timed out.");
-                    this.hasNetworkConnection = false;
-                    this.socket.end();
-                    this.socket = null;
-                    this._retryToOpenConnection();
-                });
+    /**
+     * Sends a command to the avr.
+     * It will automatically add a 'CR' to the command.
+     * The AVR requires approx 50-60 msec between to consecutive commands.
+     * The wait time between two commands is set by WAIT_BETWEEN_TRANSMITS (100msec)
+     *
+     * @param      {string}  cmd     The command to be send to the AVR
+     * @private
+     */
+    _sendToAvr( cmd ) {
+
+        this._d(`Sending : ${cmd}.`);
+        this.socket.write(cmd + "\r");
+
+        setTimeout( () => {
+            this.server.emit("check_buffer");
+        }, WAIT_BETWEEN_TRANSMITS);
+    }
+
+
+    /**
+     * Check the send buffer if there is something to be send.
+     * if not:
+     *     set isLoopRunning to false and wait on new data to be send
+     *     by _insertIntoSendBuffer routine.
+     *  if so:
+     *      Update the deleteIndex and send data to the AVR.
+     *
+     * @private
+     */
+    _checkSendBuffer() {
+
+        this._d(`${this.insertIndex} / ${this.deleteIndex}.`);
+
+        if ( this.insertIndex === this.deleteIndex ) {
+
+            // end buffer is 'empty' => nothing to do then wait till's flled again.
+            this.isLoopRunning = false ;
+            this._d("Send loop temp stopped - empty send buffer.");
+        } else {
+            if ( this.sendAr[ this.deleteIndex ] === "" ) {
+
+                // If the command to be send if empty consider it as
+                // empty buffer and exit the data send loop.
+                this.isLoopRunning = false ;
+                this._d("Sendbuffer entry empty (stopping send loop)!.");
+            } else {
+                let data = this.sendAr[ this.deleteIndex ];
+                this.sendAr[ this.deleteIndex ] = ""; // clear used buffer.
+                this.deleteIndex++;
+
+                if ( this.deleteIndex >= this.MAXINDEX ) {
+                    this.deleteIndex = 0;
+                }
+                this._d(`Setting deleteIndex to ${this.deleteIndex}.`);
+
+                this._sendToAvr( data );
+            }
         }
     }
 
     /**
-     * Retry to open the network connection to the AVR after receiving an 'error',
-     * an 'end' or a timeout from the AVR.
-     * There is a 10 secs delay between the requests.
+     * Inserts command data into the send buffer.
+     * Updates the insertIndex and start the send data event loop.
+     * If send buffer overrun occurs:
+     *    1) drop the new commands
+     *    2) notify Homey it occurred.
      *
-     *  @private
+     * @param      {string}  data    The command data.
+     * @private
      */
-    _retryToOpenConnection() {
+    _insertIntoSendBuffer( data ) {
 
-        this._d(`hasToStop is ${this.hasToStop}.`);
+        let nextInsertIndex = this.insertIndex + 1;
 
-        if ( this.hasToStop === false ) {
-            setTimeout( () => {
-                this._openConnection();
-            }, 10000);
+        if ( nextInsertIndex >= this.MAXINDEX ) {
+            nextInsertIndex = 0;
+        }
+
+        if ( this.nextInsertIndex === this.deleteIndex ) {
+            // data buffer overrun !
+            this.conChn.emit("error_log", this.avrNum, this.avrName,
+                new Error( "send buffer overload !."));
+
+        } else {
+
+            this.sendAr[ this.insertIndex ] = data ;
+
+            this.insertIndex++ ;
+
+            if ( this.insertIndex >= this.MAXINDEX ) {
+                this.insertIndex = 0;
+            }
+
+            this._d(`Next insert index = ${this.insertIndex}`);
+
+            // Signal there is new data in the send buffer.
+
+            this.server.emit("new_data");
         }
     }
 
@@ -191,7 +396,7 @@ class Avr {
 
                     let item = {};
 
-                    item.name    = this.conf.inputsource[I].name;
+                    item.i18n   = this.conf.inputsource[I].i18n;
                     item.command = this.conf.inputsource[I].command;
 
                     this.selAr.push( item );
@@ -217,7 +422,7 @@ class Avr {
 
                     let item = {};
 
-                    item.name    = this.conf.surround[I].name;
+                    item.i18n   = this.conf.surround[I].i18n;
                     item.command = this.conf.surround[I].command;
 
                     this.surroundAr.push( item );
@@ -244,7 +449,7 @@ class Avr {
 
                     let item = {};
 
-                    item.name     = this.conf.eco[I].name ;
+                    item.i18n     = this.conf.eco[I].i18n ;
                     item.command  = this.conf.eco[I].command;
 
                     this.ecoAr.push(item);
@@ -256,7 +461,7 @@ class Avr {
             // Eco not supported for this type of AVR.
 
             let item = {};
-            item.name = "eco.ns";
+            item.i18n = "eco.ns";
             item.command = "ECO_UN_SUPPORTED";
 
             this.ecoAr.push(item);
@@ -266,6 +471,11 @@ class Avr {
     /**
      * Process the received data from the AVR.
      * Is called when a 'data' network events is received.
+     * Note:
+     *     there is a 2 sec delay between the actual connection establishment
+     *     and the internal connection flag update.
+     *     This to allow the initial status requests to update the internal
+     *     statuses without generating events to Homey.
      *
      * @private
      * @param      {buffer}  data    The data received from the AVR.
@@ -280,159 +490,99 @@ class Avr {
             case "PW" :
                 // main power
                 this.powerStatus = xData;
+                if ( this.hasNetworkConnection === true ) {
+                    for ( let I = 0 ; I < this.conf.power.length; I++ ) {
+                        if ( xData === this.conf.power[I].command ) {
+                            this.conChn.emit( "power_status_chg" , this.avrNum,
+                                this.avrName, this.conf.power[I].i18n);
+                        }
+                    }
+                }
                 break;
             case "ZM" :
                 // main zone power
                 this.mainZonePowerStatus = xData ;
+                if ( this.hasNetworkConnection === true ) {
+                    for ( let I = 0 ; I < this.conf.main_zone_power.length; I++ ) {
+                        if ( xData === this.conf.main_zone_power[I].command ) {
+                            this.conChn.emit( "power_status_chg" , this.avrNum,
+                                this.avrName, this.conf.main_zone_power[I].i18n);
+                        }
+                    }
+                }
                 break;
             case "SI":
                 // inputselection
                 this.inputSourceSelection = xData ;
+                if ( this.hasNetworkConnection === true ) {
+                    for ( let I = 0 ; I < this.conf.inputsource.length; I++ ) {
+                        if ( xData === this.conf.inputsource[I].command ) {
+                            this.conChn.emit( "isource_status_chg", this.avrNum,
+                                this.avrName, this.conf.inputsource[I].i18n);
+
+                        }
+                    }
+                }
                 break;
             case "MU":
                 // mute
                 this.muteStatus = xData;
+                if ( this.hasNetworkConnection === true ) {
+                    for ( let I = 0 ; I < this.conf.mute.length; I++ ) {
+                        if ( xData === this.conf.mute[I].command ) {
+                            this.conChn.emit( "mute_status_chg", this.avrNum,
+                                this.avrName, this.conf.mute[I].i18n );
+                        }
+                    }
+                }
+
                 break;
             case "MS":
                 // Surround mode
                 this.surroundMode = xData;
+                if ( this.hasNetworkConnection === true ) {
+                    for ( let I = 0 ; I < this.conf.surround.length; I++ ) {
+                        if ( xData === this.conf.surround[I].command ) {
+                            this.conChn.emit( "mute_status_chg", this.avrNum,
+                                this.avrName, this.conf.surround[I].i18n );
+                        }
+                    }
+                }
+
                 break;
             case "MV":
-                //volume setting.
-                this.volumeStatus = xData;
+                this._processVolumeData( xData );
                 break;
             case "EC":
                 //Eco setting.
                 this.ecoStatus = xData;
+                if ( this.hasNetworkConnection === true ) {
+                    for ( let I = 0 ; I < this.conf.eco.length; I++ ) {
+                        if ( xData === this.conf.eco[I].command ) {
+                            this.conChn.emit( "eco_status_chg", this.avrNum,
+                                this.avrName, this.conf.eco[I].i18n);
+                        }
+                    }
+                }
                 break;
         }
     }
 
-    /**
-     * Handles the events for transmitting data to the AVR.
-     *
-     * 'send_entry' event is received when:
-     *              1) the send buffer is filled with a new command (_sendData )
-     *              2) After a command is send to the AVR and to check if
-     *                 the buffer is still has data. (_sendDataToAvr).
-     *
-     * 'sendToAvr' event is received when:
-     *              1) if the send buffer is not empty and command is to be send
-     *                 to the AVR. (_dataToAvr)
-     *
-     * @private
-     */
-    _eventloop() {
-        this.server
-            .on( "send_entry" , () => {
+    _processVolumeData(xData) {
 
-                this.isLoopRunning = true;
-                this._dataToAvr();
-            })
-            .on( "sendToAvr" , (cmd) => {
-                this._sendDataToAvr(cmd);
-            });
-    }
+        this._d(`_processVolumeData received '${xData}'.`);
 
-    /**
-     * Sends a command to the avr.
-     * It will automatically add a 'CR' to the command.
-     * The AVR requires approx 50-60 msec between to consecutive commands.
-     * Wait time is between two commands is set to 100 msec.
-     *
-     * @param      {string}  cmd     The command to be send to the AVR
-     * @private
-     */
-    _sendDataToAvr( cmd ) {
+        if ( xData.match(/^MVMAX .*/) === null ) {
+            this._d(`Setting volume status to '${xData}'.`);
+            this.volumeStatus = xData;
 
-        this._d(`Sending : ${cmd}.`);
-        this.socket.write(cmd + "\r");
+            let re = /^MV(\d+)/i;
 
-        setTimeout( () => {
-            this.server.emit("send_entry");
-        }, 100);
-    }
+            let Ar = xData.match(re);
 
-    /**
-     * Check the send buffer is there is something to be send.
-     * if not:
-     *     set isLoopRunning to false and wait till buffer is filled again
-     *     by _sendData routine.
-     *  if so:
-     *      Update the deleteIndex and send data to the AVR.
-     *
-     * @private
-     */
-    _dataToAvr() {
-
-        this._d(`${this.insertIndex} / ${this.deleteIndex}.`);
-
-        if ( this.insertIndex === this.deleteIndex ) {
-
-            // end buffer is 'empty' => nothing to do then wait till's flled again.
-            this.isLoopRunning = false ;
-            this._d("Send loop temp stopped - empty send buffer.");
-        } else {
-            if ( this.sendAr[ this.deleteIndex ] === "" ) {
-
-                // If the command to be send if empty consider it as
-                // empty buffer and exit the data send loop.
-                this.isLoopRunning = false ;
-                this._d("Sendbuffer entry empty (stopping send loop)!.");
-            } else {
-                let data = this.sendAr[ this.deleteIndex ];
-                this.sendAr[ this.deleteIndex ] = ""; // clear used buffer.
-                this.deleteIndex++;
-                this._d(`Setting deleteIndex to ${this.deleteIndex}.`);
-
-                if ( this.deleteIndex >= this.MAXINDEX ) {
-                    this.deleteIndex = 0;
-                }
-
-                this.server.emit("sendToAvr", data);
-            }
-        }
-    }
-
-    /**
-     * Inserts command data into the send buffer.
-     * Updates the insertIndex and start the send data event loop.
-     * If send buffer (64 entries) overrun: drop the new commands.
-     *
-     * @param      {string}  data    The command data.
-     *  @private
-     */
-    _sendData( data ) {
-
-        let nextInsertIndex = this.insertIndex + 1;
-
-        if ( nextInsertIndex >= this.MAXINDEX ) {
-            nextInsertIndex = 0;
-        }
-
-        if ( this.nextInsertIndex === this.deleteIndex ) {
-            // data buffer overrun !
-            this._d("Send buffer overrun !.");
-
-        } else {
-
-            this.sendAr[ this.insertIndex ] = data ;
-
-            this.insertIndex++ ;
-
-            if ( this.insertIndex >= this.MAXINDEX ) {
-                this.insertIndex = 0;
-            }
-
-            this._d(`Next insert index = ${this.insertIndex}`);
-
-            // Start a new 'loop' only if the last loop has finished.
-            // If the loop is running, the new data will be send
-            // by the 'current loop'
-
-            if ( this.isLoopRunning === false ) {
-                this._d("Starting send loop.....");
-                this.server.emit("send_entry");
+            if ( Ar !== null ) {
+                this.conChn.emit( "volume_chg", this.avrNum,
+                                this.avrName, Ar[1] );
             }
         }
     }
@@ -450,13 +600,13 @@ class Avr {
      * @private
      */
     _getAVRStatusUpdate() {
-        this.getAVRPowerStatus();
-        this.getAVRMainZonePowerStatus();
-        this.getAVRMuteStatus();
-        this.getAVRInputSelection();
-        this.getAVRVolumeStatus();
-        this.getAVRSurroundMode();
-        this.getAVREcoStatus();
+        this._getAVRPowerStatus();
+        this._getAVRMainZonePowerStatus();
+        this._getAVRMuteStatus();
+        this._getAVRInputSelection();
+        this._getAVRVolumeStatus();
+        this._getAVRSurroundMode();
+        this._getAVREcoStatus();
     }
 
     /*********************************************************************
@@ -468,12 +618,14 @@ class Avr {
      */
     setConsoleToDebug() {
         this.consoleOut = 1;
+        this._d("Avr debug on");
     }
 
     /**
      * Disables the info/debug message to console.log (debuggging only).
      */
     setConsoleOff() {
+        this._d("Avr debug off");
         this.consoleOut = 0;
     }
 
@@ -495,14 +647,16 @@ class Avr {
      * Send conditionally debug message to console.log (debuggging only).
      *
      * @private
-     * @param      {number}  num     The type of message (1=info, 2=debug)
      * @param      {string}  str     The message to console.log
      */
     _d(str) {
         if ( this.consoleOut > 0 ) {
-            let date = new Date();
-            let dateStr = date.toISOString();
-            console.log(`${dateStr}-${str}.`);
+            this.conChn.emit( "debug_log", this.avrNum,
+                                this.avrName, str );
+
+            // let date = new Date();
+            // let dateStr = date.toISOString();
+            //console.log(`${dateStr}-${str}.`);
         }
     }
 
@@ -515,7 +669,7 @@ class Avr {
      * @return     {string}  The hostname / IP address
      */
     getHostname() {
-        return this.host;
+        return this.avrHost;
     }
 
     /**
@@ -524,7 +678,7 @@ class Avr {
      * @return     {number}  The port.
      */
     getPort() {
-        return this.port;
+        return this.avrPort;
     }
 
     /**
@@ -533,7 +687,7 @@ class Avr {
      * @return     {string}  The type of the AVR.
      */
     getType() {
-        return this.type;
+        return this.avrType;
     }
 
     /**
@@ -542,7 +696,7 @@ class Avr {
      * @return     {string}  The name.
      */
     getName() {
-        return this.name;
+        return this.avrName;
     }
 
     /**
@@ -566,14 +720,7 @@ class Avr {
 
         this._d("Disconnecting on request.");
 
-        this.hasToStop = true;
-
-        this._d("hasToStop is true");
-
-        if ( this.socket !== null ) {
-            this.socket.end();
-            this.hasNetworkConnection = false;
-        }
+        this.server.emit("req_disconnect");
     }
 
     /*********************************************************************
@@ -588,17 +735,17 @@ class Avr {
      */
     _powerCommand( cmd ) {
         for ( let I = 0 ; I < this.conf.power.length; I++ ) {
-            // If 'test' is set don't filter if the command is valid for
+            // If 'test' is set don't filter if the command is valid or not for
             // this type of AVR.
             if ( this.test === 1 ) {
                 if ( this.conf.power[I].prog_id === cmd ) {
-                    this._sendData( this.conf.power[I].command );
+                    this._insertIntoSendBuffer( this.conf.power[I].command );
                 }
             } else {
                 if ( this.conf.power[I].prog_id === cmd &&
                      this.conf.power[I].valid === true        ) {
 
-                    this._sendData( this.conf.power[I].command );
+                    this._insertIntoSendBuffer( this.conf.power[I].command );
                 }
             }
         }
@@ -620,8 +767,9 @@ class Avr {
 
     /**
      * Gets the avr power status.
+     * @private
      */
-    getAVRPowerStatus() {
+    _getAVRPowerStatus() {
         this._powerCommand( "power_request" ) ;
     }
 
@@ -681,13 +829,13 @@ class Avr {
             // this type of AVR.
             if ( this.test === 1 ) {
                 if ( this.conf.main_zone_power[I].prog_id === cmd ) {
-                    this._sendData( this.conf.main_zone_power[I].command );
+                    this._insertIntoSendBuffer( this.conf.main_zone_power[I].command );
                 }
             } else {
                 if ( this.conf.main_zone_power[I].prog_id === cmd &&
                      this.conf.main_zone_power[I].valid === true        ) {
 
-                    this._sendData( this.conf.main_zone_power[I].command );
+                    this._insertIntoSendBuffer( this.conf.main_zone_power[I].command );
                 }
             }
         }
@@ -709,8 +857,9 @@ class Avr {
 
     /**
      * Gets the avr main zone power status.
+     * @private
      */
-    getAVRMainZonePowerStatus() {
+    _getAVRMainZonePowerStatus() {
         this._mainZonePowerCommand( "mzpower_request" ) ;
     }
 
@@ -769,13 +918,13 @@ class Avr {
             // this type of AVR.
             if ( this.test === 1 ) {
                 if ( this.conf.mute[I].prog_id === cmd ) {
-                    this._sendData( this.conf.mute[I].command );
+                    this._insertIntoSendBuffer( this.conf.mute[I].command );
                 }
             } else {
                 if ( this.conf.mute[I].prog_id === cmd &&
                      this.conf.mute[I].valid === true        ) {
 
-                    this._sendData( this.conf.mute[I].command );
+                    this._insertIntoSendBuffer( this.conf.mute[I].command );
                 }
             }
         }
@@ -797,8 +946,9 @@ class Avr {
 
     /**
      * Gets the avr mute status.
+     * @private
      */
-    getAVRMuteStatus() {
+    _getAVRMuteStatus() {
         this._MuteCommand( "mute_request" ) ;
     }
 
@@ -860,13 +1010,13 @@ class Avr {
             if ( this.test === 1 ) {
                 if ( this.conf.inputsource[I].prog_id === source ) {
 
-                    this._sendData( this.conf.inputsource[I].command );
+                    this._insertIntoSendBuffer( this.conf.inputsource[I].command );
                 }
             } else {
                 if ( this.conf.inputsource[I].prog_id === source &&
                      this.conf.inputsource[I].valid === true  ) {
 
-                    this._sendData( this.conf.inputsource[I].command );
+                    this._insertIntoSendBuffer( this.conf.inputsource[I].command );
                 }
             }
         }
@@ -885,32 +1035,10 @@ class Avr {
     /**
      * Fill the command into the send buffer and start the send loop.
      *
-     * @param      {string}  command  The command string
+     * @param      {string}  command_id  The command id string
      */
-    sendInputSourceCommand( command ) {
-        this._sendData( command );
-    }
-
-   /**
-     * Returns the i18n ident string of the current inputsource of the AVR.
-     * The string should be used to get the i18n string from locales/<lang>.json
-     * Current stored mute status is used.
-     *
-     * @return     {string}  The i18n ident string as defined in the conf/<type>.json file.
-     */
-    getInputSelection() {
-
-        let retStr = "error.cmdnf" ;
-
-        for ( let I = 0 ; I < this.conf.inputsource.length; I++ ) {
-
-            if ( this.inputSourceSelection === this.conf.inputsource[I].command ) {
-                retStr = this.conf.inputsource[I].text;
-                break;
-            }
-        }
-
-        return retStr;
+    sendInputSourceCommand( command_id ) {
+        this._insertIntoSendBuffer( command_id );
     }
 
     /**
@@ -1118,10 +1246,34 @@ class Avr {
 
     /**
      * Gets the avr input selection.
+     * @private
      */
-    getAVRInputSelection() {
+    _getAVRInputSelection() {
         this._selectInputSource("i_request");
     }
+
+    /**
+     * Returns the i18n ident string of the current inputsource of the AVR.
+     * The string should be used to get the i18n string from locales/<lang>.json
+     * Current stored mute status is used.
+     *
+     * @return     {string}  The i18n ident string as defined in the conf/<type>.json file.
+     */
+    getInputSelection() {
+
+        let retStr = "error.cmdnf" ;
+
+        for ( let I = 0 ; I < this.conf.inputsource.length; I++ ) {
+
+            if ( this.inputSourceSelection === this.conf.inputsource[I].command ) {
+                retStr = this.conf.inputsource[I].i18n;
+                break;
+            }
+        }
+
+        return retStr;
+    }
+
 
     /*********************************************************************
      * Volume methods
@@ -1140,13 +1292,13 @@ class Avr {
             // this type of AVR.
             if ( this.test === 1 ) {
                 if ( this.conf.volume[I].prog_id === cmd ) {
-                    this._sendData( this.conf.volume[I].command  + `${level}`);
+                    this._insertIntoSendBuffer( this.conf.volume[I].command  + `${level}`);
                 }
             } else {
                 if ( this.conf.volume[I].prog_id === cmd &&
                      this.conf.volume[I].valid === true        ) {
 
-                    this._sendData( this.conf.volume[I].command + `${level}` );
+                    this._insertIntoSendBuffer( this.conf.volume[I].command + `${level}` );
                 }
             }
         }
@@ -1180,7 +1332,7 @@ class Avr {
     /**
      * Gets the avr volume status.
      */
-    getAVRVolumeStatus() {
+    _getAVRVolumeStatus() {
         this._volumeCommand( "volume_request", "" );
     }
 
@@ -1190,7 +1342,7 @@ class Avr {
      * @return     {string}  The volume level.
      */
     getVolume() {
-        console.log(`volume is ${this.volumeStatus}.`);
+        this._d(`volume is ${this.volumeStatus}.`);
 
         let re = /^MV(\d+)/i;
 
@@ -1219,13 +1371,13 @@ class Avr {
             // this type of AVR.
             if ( this.test === 1 ) {
                 if ( this.conf.surround[I].prog_id === cmd ) {
-                    this._sendData( this.conf.surround[I].command );
+                    this._insertIntoSendBuffer( this.conf.surround[I].command );
                 }
             } else {
                 if ( this.conf.surround[I].prog_id === cmd &&
                      this.conf.surround[I].valid === true        ) {
 
-                    this._sendData( this.conf.surround[I].command );
+                    this._insertIntoSendBuffer( this.conf.surround[I].command );
                 }
             }
         }
@@ -1247,7 +1399,7 @@ class Avr {
      * @param      {string}  command  The command
      */
     sendSurroundCommand( command ) {
-        this._sendData( command );
+        this._insertIntoSendBuffer( command );
     }
 
     /**
@@ -1362,9 +1514,10 @@ class Avr {
     }
     /**
      * Gets the avr surround mode.
+     * @private
      */
-    getAVRSurroundMode() {
-        this._setSurroundMode("sur_request");
+    _getAVRSurroundMode() {
+        this._setSurroundMode("s_request");
     }
 
     /**
@@ -1381,7 +1534,7 @@ class Avr {
         for ( let I = 0 ; I < this.conf.surround.length; I++ ) {
 
             if ( this.surroundMode === this.conf.surround[I].command ) {
-                retStr = this.conf.surround[I].text;
+                retStr = this.conf.surround[I].i18n;
                 break;
             }
         }
@@ -1405,13 +1558,13 @@ class Avr {
             // this type of AVR.
             if ( this.test === 1 ) {
                 if ( this.conf.eco[I].prog_id === cmd ) {
-                    this._sendData( this.conf.eco[I].command );
+                    this._insertIntoSendBuffer( this.conf.eco[I].command );
                 }
             } else {
                 if ( this.conf.eco[I].prog_id === cmd &&
                      this.conf.eco[I].valid === true        ) {
 
-                    this._sendData( this.conf.eco[I].command );
+                    this._insertIntoSendBuffer( this.conf.eco[I].command );
                 }
             }
         }
@@ -1433,7 +1586,7 @@ class Avr {
      */
     sendEcoCommand(command) {
         if ( command !== "ECO_UN_SUPPORTED" ) {
-            this._sendData(command);
+            this._insertIntoSendBuffer(command);
         } else {
             this._d("Eco is unsupported for the device.");
         }
@@ -1475,8 +1628,9 @@ class Avr {
 
     /**
      * Gets the avr eco status.
+     * @private
      */
-    getAVREcoStatus() {
+    _getAVREcoStatus() {
         this._ecoMode("eco_request");
     }
 
@@ -1494,7 +1648,7 @@ class Avr {
         for ( let I = 0 ; I < this.conf.eco.length; I++ ) {
 
             if ( this.ecoStatus === this.conf.eco[I].command ) {
-                retStr = this.conf.eco[I].text;
+                retStr = this.conf.eco[I].i18n;
                 break;
             }
         }

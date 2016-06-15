@@ -131,6 +131,16 @@ module.exports = function( grunt ) {
                     destination: "<%= defs.destDocDir %>"
                 }
             }
+        },
+
+        jsonlint: {
+            all: {
+                src: ["<%= defs.srcDir %>/drivers/avr/lib/conf/*.json",
+                      "<%= defs.srcDir %>/locales/*.json"],
+                options: {
+                    formatter: "prose"
+                }
+            }
         }
     });
 
@@ -151,11 +161,17 @@ module.exports = function( grunt ) {
         "babel:tst"
     ];
 
+    var checkJson = [
+        "jsonlint:all"
+    ];
+
     grunt.registerTask("buildapp", buildApplication);
     grunt.registerTask("buildtest", buildTestEnv);
     grunt.registerTask("builddocs", buildDocumentation);
+    grunt.registerTask("checkjson", checkJson);
 
     grunt.registerTask("buildall", function() {
+        grunt.task.run(checkJson);
         grunt.task.run(buildApplication);
         grunt.task.run(buildTestEnv);
         grunt.task.run(buildDocumentation);

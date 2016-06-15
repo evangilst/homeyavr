@@ -45,7 +45,12 @@
 		var avrip = inputAr[0];
 
 		if ( typeof( inputAr[1]) !== "undefined" ) {
-			avrport = inputAr[1];
+			avrport = parseInt(inputAr[1]);
+            if ( isNaN(avrport) || avrport < 0 || avrport > 65536 ) {
+                Homey.alert( __('pair.config.invalidPort'), 'error');
+                console.log("Invalid port number.");
+                avrsuccesCheck = 1;
+            }
 		} else {
 			avrport = 23;
 		}
