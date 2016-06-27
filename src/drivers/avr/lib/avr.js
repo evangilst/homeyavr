@@ -41,7 +41,7 @@ class Avr {
         this.socket        = null;
         this.test          = 0;    // Test indicator,
                                    // lifts some restrictions during testing.
-        this.consoleOut    = 1;    // 0 = no output
+        this.consoleOut    = 0;    // 0 = no output
                                    // 1 = debug
 
         // Internal process state vars.

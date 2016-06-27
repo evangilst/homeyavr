@@ -19,6 +19,7 @@ let prtDbg = (str) => {
         let date = new Date();
         let dateStr = date.toISOString();
         Homey.log(`${dateStr}-${str}`);
+        //console.log(`${dateStr}-${str}`);
     }
 };
 
@@ -31,6 +32,7 @@ let prtMsg = (str) => {
     let date = new Date();
     let dateStr = date.toISOString();
     Homey.log(`${dateStr}-${str}`);
+    //console.log(`${dateStr}-${str}`);
 };
 
 /**
@@ -66,8 +68,8 @@ let setUpListeners = () => {
 
     avrSvr
         // initiation and load avr type json files events
-        .on("init_success", (num, type) => {
-            prtDbg(`AVR slot ${num} has loaded the ${type}.json file.`);
+        .on("init_success", (num, name, type) => {
+            prtDbg(`AVR ${name} slot ${num} has loaded the ${type}.json file.`);
             // the AVR type json files has been loaded.
             // enable certain functions/methods
             avrDevArray[ num ].confLoaded = true;
@@ -249,7 +251,7 @@ let init = (devices,callback) => {
 let deleted = (device, callback) => {
 
     if ( myDebugMode === true ) {
-        prtDbg("Marantzavr: delete device called");
+        prtDbg("Marantzavr: delete_device called");
         prtDbg(`Marantzavr: delete_device: ${device.avrip}.`);
         prtDbg(`Marantzavr: delete_device: ${device.avrport}.`);
         prtDbg(`Marantzavr: delete_device: ${device.avrname}.`);
@@ -277,6 +279,54 @@ let deleted = (device, callback) => {
     }
 };
 
+let added = (device, callback) => {
+
+    if ( myDebugMode === true ) {
+        prtDbg("Marantzavr: add_device called");
+        prtDbg(`Marantzavr: add_device: ${device.avrip}.`);
+        prtDbg(`Marantzavr: add_device: ${device.avrport}.`);
+        prtDbg(`Marantzavr: add_device: ${device.avrname}.`);
+        prtDbg(`Marantzavr: add_device: ${device.avrindex}.`);
+    }
+
+    let xDev = {
+        dev:        new Avr(),
+        available:  false,
+        confloaded: false,
+        used:       true
+    };
+
+    avrDevArray[ newDevInfo.avrindex ] = xDev;
+
+    avrDevArray[ newDevInfo.avrindex ].dev.init(newDevInfo.avrport,
+                                                newDevInfo.avrip,
+                                                newDevInfo.avrname,
+                                                newDevInfo.avrtype ,
+                                                newDevInfo.avrindex,
+                                                avrSvr );
+
+
+    if ( myDebugMode === true ) {
+        prtDbg("New device array :");
+
+        for ( let I = 0 ; I < avrDevArray.length ; I++ ) {
+            if ( avrDevArray[I].used == true ) {
+                let host = avrDevArray[I].dev.getHostname();
+                let port = avrDevArray[I].dev.getPort();
+                let used = avrDevArray[I].used;
+
+                prtDbg(`Entry ${I} has ${host}:${port} (${used}).`);
+            } else {
+                prtDbg(`Entry ${I} is not used.`);
+            }
+        }
+    }
+
+    newDevInfo = {};
+
+    callback(null,true);
+
+};
 
 /**
  * Pair Homey with new devices.
@@ -319,40 +369,7 @@ let pair = (socket) => {
                 }
             ];
 
-            let xDev = {
-                dev:        new Avr(),
-                available:  false,
-                confloaded: false,
-                used:       true
-            };
-
-            avrDevArray[ newDevInfo.avrindex ] = xDev;
-
-            avrDevArray[ newDevInfo.avrindex ].dev.init(newDevInfo.avrport,
-                                                        newDevInfo.avrip,
-                                                        newDevInfo.avrname,
-                                                        newDevInfo.avrtype ,
-                                                        newDevInfo.avrindex,
-                                                        avrSvr );
-
-
-            if ( myDebugMode === true ) {
-                prtDbg("New device array :");
-
-                for ( let I = 0 ; I < avrDevArray.length ; I++ ) {
-                    if ( avrDevArray[I].used == true ) {
-                        let host = avrDevArray[I].dev.getHostname();
-                        let port = avrDevArray[I].dev.getPort();
-                        let used = avrDevArray[I].used;
-
-                        prtDbg(`Entry ${I} has ${host}:${port} (${used}).`);
-                    } else {
-                        prtDbg(`Entry ${I} is not used.`);
-                    }
-                }
-            }
-
-            newDevInfo = {};
+            //newDevInfo = {};
 
             callback( null, devices);
         })
@@ -390,7 +407,9 @@ let pair = (socket) => {
         })
 
         .on("disconnect" , () => {
+
             prtDbg("Marantz app - User aborted pairing, or pairing is finished");
+
         });
 };
 
@@ -463,14 +482,28 @@ let capabilities = {
 let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
 
     if ( myDebugMode === true ) {
+        prtDbg( device_data.avrip );
+        prtDbg( device_data.avrport );
+        prtDbg( device_data.avrtype );
+        prtDbg( device_data.avrindex );
+
+        prtDbg( newSet.avrip );
+        prtDbg( newSet.avrport );
+        prtDbg( newSet.avrtype );
+        prtDbg( newSet.avrindex );
+
+        prtDbg( oldSet.avrip );
+        prtDbg( oldSet.avrport );
+        prtDbg( oldSet.avrtype );
+        prtDbg( oldSet.avrindex );
+
+        prtDbg( changedKeyArr);
+
+
         prtDbg( "Device_data -> ", JSON.stringify(device_data));
         prtDbg( "newSet -> ", JSON.stringify(newSet));
         prtDbg( "oldSet -> ", JSON.stringify(changedKeyArr));
     }
-
-    prtMsg( "Device_data -> ", JSON.stringify(device_data));
-    prtMsg( "newSet -> ", JSON.stringify(newSet));
-    prtMsg( "oldSet -> ", JSON.stringify(changedKeyArr));
 
     prtMsg( JSON.stringify(newSet));
 
@@ -480,8 +513,8 @@ let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
     let newAvr      = false ;
     let errorDect   = false ;
     let errorIdStr  = "";
-    let avrDebugChg = false;
-    let homDebugChg = false;
+    // let avrDebugChg = false;
+    // let homDebugChg = false;
 
     let num = parseInt(newSet.avrport);
 
@@ -515,12 +548,12 @@ let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
                 nType = newSet.avrtype;
                 newAvr = true;
                 break;
-            case "aDebug":
-                avrDebugChg = true;
-                break;
-            case "hDebug":
-                homDebugChg = true;
-                break;
+            // case "aDebug":
+            //     avrDebugChg = true;
+            //     break;
+            // case "hDebug":
+            //     homDebugChg = true;
+            //     break;
         }
     });
 
@@ -553,29 +586,29 @@ let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
                                                      avrSvr );
         }
 
-        if ( avrDebugChg === true ) {
-            if ( newSet.aDebug === true ) {
+        // if ( avrDebugChg === true ) {
+        //     if ( newSet.aDebug === true ) {
 
-                avrDevArray[ device_data.avrindex].dev.setConsoleToDebug();
+        //         avrDevArray[ device_data.avrindex].dev.setConsoleToDebug();
 
-            } else {
-                avrDevArray[ device_data.avrindex].dev.setConsoleOff();
-            }
-        }
+        //     } else {
+        //         avrDevArray[ device_data.avrindex].dev.setConsoleOff();
+        //     }
+        // }
 
-        if ( homDebugChg === true ) {
+        // if ( homDebugChg === true ) {
 
-            if ( newSet.hDebug === true ) {
+        //     if ( newSet.hDebug === true ) {
 
-                switchOnDebugMode();
-            } else {
+        //         switchOnDebugMode();
+        //     } else {
 
-                switchOffDebugMode();
-            }
-        }
+        //         switchOffDebugMode();
+        //     }
+        // }
 
         prtDbg("Settings returning oke");
-        callback( null, true);
+        callback( null, true );
     } else {
         prtDbg("Settings returning a failure");
         callback( new Error( getI18String(errorIdStr)), false );
@@ -1159,6 +1192,7 @@ Homey.manager("flow")
     });
 
 module.exports.deleted      = deleted;
+module.exports.added        = added;
 module.exports.init         = init;
 module.exports.pair         = pair;
 module.exports.capabilities = capabilities;

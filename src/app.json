@@ -4,7 +4,7 @@
         "en": "homeyavr",
         "nl": "homeyavr"
     },
-    "version": "0.9.1",
+    "version": "0.9.2",
     "compatibility": "0.x || 1.x",
     "author": {
         "name": "Evert van Gilst",
@@ -202,31 +202,6 @@
                                     "label": "NR1504"
                                 }
                             ]
-                        }
-                    ]
-                },
-                {
-                    "type": "group",
-                    "label": {
-                        "en": "Debug.",
-                        "nl": "Debug"
-                    },
-                    "children": [
-                        {
-                            "id":    "aDebug",
-                            "type":  "checkbox",
-                            "label": {
-                                "en":  "Debug avr control part",
-                                "nl":  "Debug avr controle gedeelte"
-                            }
-                        },
-                        {
-                            "id":    "hDebug",
-                            "type":  "checkbox",
-                            "label": {
-                                "en":  "Debug homey part",
-                                "nl":  "Debug homey gedeelte"
-                            }
                         }
                     ]
                 }
@@ -477,14 +452,14 @@
         ],
         "triggers": [
             {
-                "id": "power_on",
+                "id": "t_power_on",
                 "title": {
                     "en": "Main power switched on.",
                     "nl": "AVR aangezet."
                 },
                 "tokens": [
                     {
-                        "avrname": "avr_name",
+                        "avrname": "avrname",
                         "title": {
                             "en": "AVR",
                             "nl": "AVR"

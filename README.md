@@ -1,7 +1,7 @@
 # Homeyavr
 
 Application to connect Homey to a Marantz AVR.
-Version: 0.9.1
+Version: 0.9.2
 
 Currently working and supported in flows:
 
@@ -33,12 +33,12 @@ App updates the internal status of the AVR constantly, even if the command is gi
 by a different application or by remote control, as long the AVR is transmitting
 the commands.
 
-Not tested:
+Not working:
 * Save settings.
-  Due to an bug in version v0.8.32 and confirmed to be fixed in v0.8.35 (Issue #600)
-  Currently the save setting popup will not be removed
-  Settings are not saved although the application is using the new paramater.
-  However after a restart/reboot the old paramaters will be used.
+  0.8.39 does not closed the settings window after save-settings and
+  the changed values are not saved by Homey.
+  Program will change the running parameters but after a restart the old values will be
+  supplied by Homey and used.
 
 To do:
 * Use capabilities in the web interface as example light.
