@@ -8,6 +8,7 @@ let avrSvr       = null ;  // event channel
 let myDebugMode  = true;  // Write debug messages or not
 let avrDevArray  = [];     // AVR device array
 let newDevInfo   = {};     // New device
+let knownAvrs    = [];     // Known avr names.
 
 /**
  * Prints debug messages using homey.log if debug is switched on.
@@ -48,18 +49,18 @@ let getI18String = (str) => {
 /**
  * Switch debug mode on
  */
-let switchOnDebugMode = () => {
-    myDebugMode = true ;
-    prtDbg("Debug switched on");
-};
+// let switchOnDebugMode = () => {
+//     myDebugMode = true ;
+//     prtDbg("Debug switched on");
+// };
 
 /**
  * Swicth debug mode off.
  */
-let switchOffDebugMode = () => {
-    prtDbg("Debug switched off");
-    myDebugMode = false ;
-};
+// let switchOffDebugMode = () => {
+//     prtDbg("Debug switched off");
+//     myDebugMode = false ;
+// };
 
 /**
  * Set up event listeners.
@@ -118,25 +119,61 @@ let setUpListeners = () => {
         })
 
         // Status triggers
-        .on("power_status_chg" , (num, name, cmd ) => {
-            let iStr = getI18String("event." + cmd);
-            prtDbg(`Avr ${name} (slot ${num}) : ${iStr}`);
+        .on("power_status_chg" , (num, name, newcmd, oldcmd ) => {
+
+            prtDbg(`Avr ${name} (slot ${num}) : ${newcmd} - ${oldcmd}`);
+
+            if ( newcmd === "power.on" && oldcmd === "power.off" ) {
+                prtDbg("triggering t_power_on");
+
+                Homey.manager("flow").trigger("t_power_on", {name: name}, {name: name});
+
+            } else if ( newcmd === "power.off" && oldcmd === "power.on") {
+                prtDbg("triggering t_power_off");
+
+                Homey.manager("flow").trigger("t_power_off", {name: name}, {name: name});
+            }
         })
-        .on("mute_status_chg" , (num, name, cmd ) => {
-            let iStr = getI18String("event." + cmd);
-            prtDbg(`Avr ${name} (slot ${num}) : ${iStr}`);
+        .on("mute_status_chg" , (num, name, newcmd, oldcmd ) => {
+
+            prtDbg(`Avr ${name} (slot ${num}) : ${newcmd} - ${oldcmd}`);
+
+            if ( newcmd === "mute.on" && oldcmd === "mute.off" ) {
+                prtDbg("triggering t_mute_on");
+
+                Homey.manager("flow").trigger("t_mute_on", {name: name}, {name: name});
+
+            } else if ( newcmd === "mute.off" && oldcmd === "mute.on") {
+                prtDbg("triggering t_mute_off");
+
+                Homey.manager("flow").trigger("t_mute_off", {name: name}, {name: name});
+            }
         })
-        .on("eco_status_chg" , (num, name, cmd ) => {
-            let iStr = getI18String("event." + cmd);
-            prtDbg(`Avr ${name} (slot ${num}) : ${iStr}`);
+        .on("eco_status_chg" , (num, name, newcmd, oldcmd ) => {
+
+            prtDbg(`Avr ${name} (slot ${num}) : ${newcmd} - ${oldcmd}`);
+
+            if ( newcmd === "eco.on" && oldcmd !== "eco.on" ) {
+                prtDbg("triggering t_eco_on");
+
+                Homey.manager("flow").trigger("t_eco_on", {name: name}, {name: name});
+
+            } else if ( newcmd === "eco.off" && oldcmd !== "eco.off") {
+                prtDbg("triggering t_eco_off");
+
+                Homey.manager("flow").trigger("t_eco_off", {name: name}, {name: name});
+
+            } else if ( newcmd === "eco.auto" && oldcmd !== "eco.auto") {
+                prtDbg("triggering t_eco_auto");
+
+                Homey.manager("flow").trigger("t_eco_auto", {name: name}, {name: name});
+            }
         })
         .on("isource_status_chg" , (num, name, cmd ) => {
-            let iStr = getI18String( "event." + cmd);
-            prtDbg(`Avr ${name} (slot ${num}) : ${iStr}`);
+            prtDbg(`Avr ${name} (slot ${num}) : ${cmd}`);
         })
         .on("surmode_status_chg" , (num, name, cmd ) => {
-            let iStr = getI18String( "event." + cmd);
-            prtDbg(`Avr ${name} (slot ${num}) : ${iStr}`);
+            prtDbg(`Avr ${name} (slot ${num}) : ${cmd}`);
         })
         .on("volume_chg" , (num, name, value) => {
             prtDbg(`Avr ${name} (slot ${num}) changed volume to ${value}.`);
@@ -179,13 +216,6 @@ let init = (devices,callback) => {
             avrDevArray[I]  = emptyDev;
         }
 
-        if ( myDebugMode === true ) {
-            for ( let I = 0 ; I < MAX_AVRS; I++ ) {
-                prtDbg(`Slot ${I} has status ${avrDevArray[I].used}.`);
-            }
-            prtDbg(`Device array length: ${devices.length}.`);
-        }
-
         avrSvr = new eventEmitter();
 
         setUpListeners();
@@ -218,11 +248,17 @@ let init = (devices,callback) => {
                                                         device.avrtype ,
                                                         device.avrindex,
                                                         avrSvr );
+                let x = {
+                    name: device.avrname,
+                    avr:  device.avrname
+                };
+
+                knownAvrs.push(x);
             });
 
             if ( myDebugMode === true ) {
                 for ( let I = 0 ; I < avrDevArray.length; I++ ) {
-                    if ( avrDevArray[I].status === true ) {
+                    if ( avrDevArray[I].used === true ) {
                         let host = avrDevArray[ I ].dev.getHostname();
                         let port = avrDevArray[ I ].dev.getPort();
 
@@ -231,8 +267,139 @@ let init = (devices,callback) => {
                         prtDbg(`Entry ${I} is not used.`);
                     }
                 }
+                prtDbg("KnownAvrs :");
+
+                for ( let I = 0 ; I < knownAvrs.length; I++ ) {
+                    prtDbg(`${I} -> ${knownAvrs[I].name}.`);
+                }
             }
         }
+
+        Homey.manager("flow").on("trigger.t_power_on.avrname.autocomplete", (callback) => {
+
+            prtDbg("Trigger t_power_on complete called");
+
+            callback(null,knownAvrs);
+        });
+
+        Homey.manager("flow").on("trigger.t_power_off.avrname.autocomplete", (callback) => {
+
+            prtDbg("Trigger t_power_off complete called");
+
+            callback(null,knownAvrs);
+        });
+
+        Homey.manager("flow").on("trigger.t_mute_on.avrname.autocomplete", (callback) => {
+
+            prtDbg("Trigger t_mute_on complete called");
+
+            callback(null,knownAvrs);
+        });
+
+        Homey.manager("flow").on("trigger.t_mute_off.avrname.autocomplete", (callback) => {
+
+            prtDbg("Trigger t_mute_off complete called");
+
+            callback(null,knownAvrs);
+        });
+
+        Homey.manager("flow").on("trigger.t_eco_on.avrname.autocomplete", (callback) => {
+
+            prtDbg("Trigger t_eco_on complete called");
+
+            callback(null,knownAvrs);
+        });
+
+        Homey.manager("flow").on("trigger.t_eco_off.avrname.autocomplete", (callback) => {
+
+            prtDbg("Trigger t_eco_off complete called");
+
+            callback(null,knownAvrs);
+        });
+
+        Homey.manager("flow").on("trigger.t_eco_auto.avrname.autocomplete", (callback) => {
+
+            prtDbg("Trigger t_eco_auto complete called");
+
+            callback(null,knownAvrs);
+        });
+
+        Homey.manager("flow").on("trigger.t_power_on", (callback, args, data) => {
+
+            prtDbg("On Trigger t_power_on called");
+
+            if ( data.name === args.avrname.name ) {
+                callback(null, true);
+            } else {
+                callback(null, false);
+            }
+        });
+
+        Homey.manager("flow").on("trigger.t_power_off", (callback, args, data) => {
+
+            prtDbg("On Trigger t_power_off called");
+
+            if ( data.name === args.avrname.name ) {
+                callback(null, true);
+            } else {
+                callback(null, false);
+            }
+        });
+
+        Homey.manager("flow").on("trigger.t_mute_on", (callback, args, data) => {
+
+            prtDbg("On Trigger t_mute_on called");
+
+            if ( data.name === args.avrname.name ) {
+                callback(null, true);
+            } else {
+                callback(null, false);
+            }
+        });
+
+        Homey.manager("flow").on("trigger.t_mute_off", (callback, args, data) => {
+
+            prtDbg("On Trigger t_mute_off called");
+
+            if ( data.name === args.avrname.name ) {
+                callback(null, true);
+            } else {
+                callback(null, false);
+            }
+        });
+
+        Homey.manager("flow").on("trigger.t_eco_on", (callback, args, data) => {
+
+            prtDbg("On Trigger t_eco_on called");
+
+            if ( data.name === args.avrname.name ) {
+                callback(null, true);
+            } else {
+                callback(null, false);
+            }
+        });
+
+        Homey.manager("flow").on("trigger.t_eco_off", (callback, args, data) => {
+
+            prtDbg("On Trigger t_eco_off called");
+
+            if ( data.name === args.avrname.name ) {
+                callback(null, true);
+            } else {
+                callback(null, false);
+            }
+        });
+
+        Homey.manager("flow").on("trigger.t_eco_auto", (callback, args, data) => {
+
+            prtDbg("On Trigger t_eco_auto called");
+
+            if ( data.name === args.avrname.name ) {
+                callback(null, true);
+            } else {
+                callback(null, false);
+            }
+        });
 
     } else {
         prtMsg("Init called for the second time!.");
@@ -266,6 +433,12 @@ let deleted = (device, callback) => {
 
         avrDevArray[device.avrindex].dev.disconnect();
 
+        for ( let I = 0 ; I < knownAvrs.length; I++ ) {
+            if ( knownAvrs[I].name === device.avrname ) {
+                knownAvrs.splice(I, 1);
+            }
+        }
+
         let xDev = {
             dev:        null,
             available:  false,
@@ -274,6 +447,24 @@ let deleted = (device, callback) => {
         };
 
         avrDevArray[ device.avrindex ] = xDev;
+
+        if ( myDebugMode === true ) {
+            for ( let I = 0 ; I < avrDevArray.length; I++ ) {
+                if ( avrDevArray[I].used === true ) {
+                    let host = avrDevArray[ I ].dev.getHostname();
+                    let port = avrDevArray[ I ].dev.getPort();
+
+                    prtDbg(`Entry ${I} has ${host}:${port}.`);
+                } else {
+                    prtDbg(`Entry ${I} is not used.`);
+                }
+            }
+            prtDbg("KnownAvrs :");
+
+            for ( let I = 0 ; I < knownAvrs.length; I++ ) {
+                prtDbg(`${I} -> ${knownAvrs[I].name}.`);
+            }
+        }
 
         callback( null, true);
     }
@@ -305,6 +496,12 @@ let added = (device, callback) => {
                                                 newDevInfo.avrindex,
                                                 avrSvr );
 
+    let x = {
+        name: newDevInfo.avrname,
+        avr:  newDevInfo.avrname
+    };
+
+    knownAvrs.push(x);
 
     if ( myDebugMode === true ) {
         prtDbg("New device array :");
@@ -319,6 +516,11 @@ let added = (device, callback) => {
             } else {
                 prtDbg(`Entry ${I} is not used.`);
             }
+        }
+        prtDbg("KnownAvrs :");
+
+        for ( let I = 0 ; I < knownAvrs.length; I++ ) {
+            prtDbg(`${I} -> ${knownAvrs[I].name}.`);
         }
     }
 

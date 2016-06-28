@@ -146,6 +146,7 @@ class Avr {
             // loading and parsing the AVR config file.
             // next action: open network connection.
             .on( "config_loaded", () => {
+                this.configLoaded = true;
                 this._openConnection();
             })
 
@@ -485,19 +486,39 @@ class Avr {
 
         this._d(`Received : ${xData}.`);
 
+        let newStatus = "";
+        let oldStatus = "";
+        let newI18n   = "";
+        let oldI18n   = "";
+
         switch( xData.substr(0,2) ) {
 
             case "PW" :
                 // main power
-                this.powerStatus = xData;
-                if ( this.hasNetworkConnection === true ) {
+                newStatus = xData;
+                oldStatus = this.powerStatus;
+                newI18n = "";
+                oldI18n = "";
+
+                this.powerStatus = newStatus;
+
+                if ( this.hasNetworkConnection == true ) {
                     for ( let I = 0 ; I < this.conf.power.length; I++ ) {
-                        if ( xData === this.conf.power[I].command ) {
-                            this.conChn.emit( "power_status_chg" , this.avrNum,
-                                this.avrName, this.conf.power[I].i18n);
+                        if ( newStatus === this.conf.power[I].command ) {
+                            newI18n = this.conf.power[I].i18n;
                         }
                     }
+
+                    for ( let I = 0 ; I < this.conf.power.length; I++ ) {
+                        if ( oldStatus === this.conf.power[I].command ) {
+                            oldI18n = this.conf.power[I].i18n;
+                        }
+                    }
+
+                    this.conChn.emit( "power_status_chg" , this.avrNum,
+                                this.avrName, newI18n, oldI18n );
                 }
+
                 break;
             case "ZM" :
                 // main zone power
@@ -526,14 +547,28 @@ class Avr {
                 break;
             case "MU":
                 // mute
-                this.muteStatus = xData;
-                if ( this.hasNetworkConnection === true ) {
+                newStatus = xData;
+                oldStatus = this.muteStatus;
+                newI18n = "";
+                oldI18n = "";
+
+                this.muteStatus = newStatus;
+
+                if ( this.hasNetworkConnection == true ) {
                     for ( let I = 0 ; I < this.conf.mute.length; I++ ) {
-                        if ( xData === this.conf.mute[I].command ) {
-                            this.conChn.emit( "mute_status_chg", this.avrNum,
-                                this.avrName, this.conf.mute[I].i18n );
+                        if ( newStatus === this.conf.mute[I].command ) {
+                            newI18n = this.conf.mute[I].i18n;
                         }
                     }
+
+                    for ( let I = 0 ; I < this.conf.mute.length; I++ ) {
+                        if ( oldStatus === this.conf.mute[I].command ) {
+                            oldI18n = this.conf.mute[I].i18n;
+                        }
+                    }
+
+                    this.conChn.emit( "mute_status_chg" , this.avrNum,
+                                this.avrName, newI18n, oldI18n );
                 }
 
                 break;
@@ -555,15 +590,30 @@ class Avr {
                 break;
             case "EC":
                 //Eco setting.
-                this.ecoStatus = xData;
-                if ( this.hasNetworkConnection === true ) {
+                newStatus = xData;
+                oldStatus = this.ecoStatus;
+                newI18n = "";
+                oldI18n = "";
+
+                this.ecoStatus = newStatus;
+
+                if ( this.hasNetworkConnection == true ) {
                     for ( let I = 0 ; I < this.conf.eco.length; I++ ) {
-                        if ( xData === this.conf.eco[I].command ) {
-                            this.conChn.emit( "eco_status_chg", this.avrNum,
-                                this.avrName, this.conf.eco[I].i18n);
+                        if ( newStatus === this.conf.eco[I].command ) {
+                            newI18n = this.conf.eco[I].i18n;
                         }
                     }
+
+                    for ( let I = 0 ; I < this.conf.eco.length; I++ ) {
+                        if ( oldStatus === this.conf.eco[I].command ) {
+                            oldI18n = this.conf.eco[I].i18n;
+                        }
+                    }
+
+                    this.conChn.emit( "eco_status_chg" , this.avrNum,
+                                this.avrName, newI18n, oldI18n );
                 }
+
                 break;
         }
     }

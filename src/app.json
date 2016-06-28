@@ -457,16 +457,115 @@
                     "en": "Main power switched on.",
                     "nl": "AVR aangezet."
                 },
-                "tokens": [
+                "args": [
                     {
-                        "avrname": "avrname",
-                        "title": {
-                            "en": "AVR",
-                            "nl": "AVR"
-                        },
-                        "example": {
-                            "en": "avr",
-                            "nl": "avr"
+                        "name": "avrname",
+                        "type": "autocomplete",
+                        "placeholder": {
+                            "en": "which avr",
+                            "nl": "welk avr"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "t_power_off",
+                "title": {
+                    "en": "Main power switched off.",
+                    "nl": "AVR uitgezet."
+                },
+                "args": [
+                    {
+                        "name": "avrname",
+                        "type": "autocomplete",
+                        "placeholder": {
+                            "en": "which avr",
+                            "nl": "welk avr"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "t_mute_on",
+                "title": {
+                    "en": "Mute switched on.",
+                    "nl": "Mute aangezet."
+                },
+                "args": [
+                    {
+                        "name": "avrname",
+                        "type": "autocomplete",
+                        "placeholder": {
+                            "en": "which avr",
+                            "nl": "welk avr"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "t_mute_off",
+                "title": {
+                    "en": "Mute switched off.",
+                    "nl": "Mute uitgezet."
+                },
+                "args": [
+                    {
+                        "name": "avrname",
+                        "type": "autocomplete",
+                        "placeholder": {
+                            "en": "which avr",
+                            "nl": "welk avr"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "t_eco_on",
+                "title": {
+                    "en": "Eco switched on.",
+                    "nl": "Eco aangezet."
+                },
+                "args": [
+                    {
+                        "name": "avrname",
+                        "type": "autocomplete",
+                        "placeholder": {
+                            "en": "which avr",
+                            "nl": "welk avr"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "t_eco_off",
+                "title": {
+                    "en": "Eco switched off.",
+                    "nl": "Eco uitgezet."
+                },
+                "args": [
+                    {
+                        "name": "avrname",
+                        "type": "autocomplete",
+                        "placeholder": {
+                            "en": "which avr",
+                            "nl": "welk avr"
+                        }
+                    }
+                ]
+            },
+            {
+                "id": "t_eco_auto",
+                "title": {
+                    "en": "Eco switched to auto.",
+                    "nl": "Eco mode naar auto."
+                },
+                "args": [
+                    {
+                        "name": "avrname",
+                        "type": "autocomplete",
+                        "placeholder": {
+                            "en": "which avr",
+                            "nl": "welk avr"
                         }
                     }
                 ]
