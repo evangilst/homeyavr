@@ -1,7 +1,7 @@
 # Homeyavr
 
 Application to connect Homey to a Marantz AVR.
-Version: 0.9.2
+Version: 0.9.3
 
 Currently working and supported in flows:
 
@@ -23,6 +23,11 @@ Currently working and supported in flows:
 	- On
 	- Off
 	- Auto
+* Triggers for:
+	- power
+	- mute
+	- eco
+
 * All selection strings and messages are using the "locales/<LANG>.json" files.
   I.e for new languages support only a new "locales/<LANG>.json" and app.json
   should be suffient.

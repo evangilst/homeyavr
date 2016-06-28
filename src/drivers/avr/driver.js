@@ -5,7 +5,7 @@ let Avr = require("./lib/avr");
 
 const MAX_AVRS   = 8    ;  // Max allowed AVR configurations
 let avrSvr       = null ;  // event channel
-let myDebugMode  = true;  // Write debug messages or not
+let myDebugMode  = false;  // Write debug messages or not
 let avrDevArray  = [];     // AVR device array
 let newDevInfo   = {};     // New device
 let knownAvrs    = [];     // Known avr names.

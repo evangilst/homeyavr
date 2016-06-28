@@ -1,4 +1,9 @@
 
+* V0.9.3
+	- Add triggers from :
+		- power
+		- mute
+		- eco
 
 * v0.9.2
 	- added jsonlint to Gruntfile
