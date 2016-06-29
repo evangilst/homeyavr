@@ -1,4 +1,7 @@
 
+* V1.0.0
+	- No changes: version used for first version to be uploaded into app-store.
+
 * v0.9.4
 	- Changes some print messages to debug messages in driver.js.
 
