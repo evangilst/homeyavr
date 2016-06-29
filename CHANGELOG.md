@@ -1,4 +1,7 @@
 
+* v0.9.4
+	- Changes some print messages to debug messages in driver.js.
+
 * V0.9.3
 	- Add triggers from :
 		- power

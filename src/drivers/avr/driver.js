@@ -182,12 +182,12 @@ let setUpListeners = () => {
 
         // Debug messages from ath avr control part.
         .on( "debug_log"  , (num, name, msg ) => {
-            prtMsg(`AVR ${name} (slot ${num}) ${msg}.`);
+            prtDbg(`AVR ${name} (slot ${num}) ${msg}.`);
         })
 
         .on("uncaughtException", () => {
             // catch uncaught exception to prevent runtime problems.
-            prtMsg("Oops: uncaught exception !.");
+            prtDbg("Oops: uncaught exception !.");
         });
 };
 
@@ -402,7 +402,7 @@ let init = (devices,callback) => {
         });
 
     } else {
-        prtMsg("Init called for the second time!.");
+        prtDbg("Init called for the second time!.");
     }
 
     callback(null,"");
@@ -541,8 +541,6 @@ let pair = (socket) => {
 
     socket
         .on( "list_devices", (data, callback) => {
-
-            prtMsg("MarantzAvr: pair => list_devices called.");
 
             if ( myDebugMode === true ) {
 
@@ -706,8 +704,6 @@ let settings = (device_data, newSet, oldSet, changedKeyArr, callback) => {
         prtDbg( "newSet -> ", JSON.stringify(newSet));
         prtDbg( "oldSet -> ", JSON.stringify(changedKeyArr));
     }
-
-    prtMsg( JSON.stringify(newSet));
 
     let nIP         = device_data.avrip;
     let nPort       = device_data.avrport;
